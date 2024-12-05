@@ -4,74 +4,253 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.TaskStackBuilder
 import androidx.core.net.toUri
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navDeepLink
+import androidx.navigation.navigation
+import com.app.researchanddevelopment.AuthState
 import com.app.researchanddevelopment.MainActivity
+import com.app.researchanddevelopment.MainViewModel
 import com.app.researchanddevelopment.notification.NotificationUtils
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 
 @Composable
-fun DeepLinkNavHost(modifier: Modifier = Modifier, startDestination: String, navController: NavHostController) {
+fun DeepLinkApp(
+    viewModel: MainViewModel,
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+) {
+
+    when (viewModel.authState) {
+
+        AuthState.LOADING -> {
+            SplashScreen(modifier = modifier)
+        }
+
+        is AuthState.SUCCESS -> {
+            Surface(
+                modifier = modifier.then(Modifier.fillMaxSize()),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                DeepLinkNavHost(
+                    modifier = Modifier,
+                    startDestination = (viewModel.authState as AuthState.SUCCESS).route,
+                    navController = navController
+                )
+            }
+        }
+
+    }
+}
+
+@Composable
+fun DeepLinkNavHost(
+    modifier: Modifier = Modifier,
+    startDestination: String,
+    navController: NavHostController
+) {
 
     var shouldPushNotification by remember { mutableStateOf(false) }
-    val ctx = LocalContext.current
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
     CheckPermission {
         shouldPushNotification = it
     }
 
-    NavHost(
-        navController = navController, route = "Route", startDestination = startDestination, modifier = modifier
+    Scaffold(
+        modifier = modifier.then(Modifier.fillMaxSize()),
+        containerColor = MaterialTheme.colorScheme.surface,
+        bottomBar = {
+            navItemList.any { it == currentDestination?.route }.let {
+                if (it) BottomNavigationBar(modifier = Modifier.fillMaxWidth(), navController, currentDestination)
+            }
+        }
+    ) { paddingValues ->
+
+        NavHost(
+            navController = navController,
+            route = "Route",
+            startDestination = startDestination,
+            modifier = modifier.padding(paddingValues)
+        ) {
+
+            authNavGraph(navController)
+            mainNavGraph(navController)
+        }
+
+    }
+}
+
+
+fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
+    navigation(
+        startDestination = "login", route = "auth"
     ) {
 
-        composable("auth", deepLinks = listOf(navDeepLink {
-            uriPattern = "$BaseDeepLink/auth/{$iD}"
-        })) {
-            Login()
+        composable(
+            "login", deepLinks = listOf(navDeepLink {
+                uriPattern = "$BaseDeepLink/login/{$iD}"
+            })
+        ) {
+            ScreenMaker("Login Screen") {
+                navController.navigate("main") {
+                    popUpTo("auth")
+                }
+            }
         }
 
         composable(
-            "main", deepLinks = listOf(navDeepLink {
+            "register",
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$BaseDeepLink/register/{$iD}"
+            })
+        ) {
+            ScreenMaker("Register Screen") {
+                navController.navigate("main") {
+                    popUpTo("auth")
+                }
+            }
+        }
+    }
+}
+
+
+fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
+
+    navigation(
+        startDestination = "home",
+        route = "main",
+    ) {
+
+        composable(
+            "home",
+            deepLinks = listOf(navDeepLink {
                 uriPattern = "$BaseDeepLink/main/{$iD}"
             })
         ) { backStackEntry ->
+
             val id = backStackEntry.arguments?.getString(iD)
-            MainScreen(
+            val ctx = LocalContext.current
+
+            HomeScreen(
                 id = id,
-                onClick = { pushNotification(context = ctx, route = "auth") },
-                shouldPushNotification = shouldPushNotification
+                onClick = { pushNotification(context = ctx, route = "login") },
+                shouldPushNotification = true
+            )
+        }
+
+        composable(
+            "profile",
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$BaseDeepLink/profile/{$iD}"
+            })
+        ) {
+
+            ScreenMaker(name = "Profile") {
+                navController.navigate("auth") {
+                    popUpTo("main")
+                }
+            }
+        }
+
+        composable(
+            "search",
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$BaseDeepLink/setting/{$iD}"
+            })
+        ) {
+            ScreenMaker(name = "Search") { }
+        }
+
+    }
+
+}
+
+
+//-----------------
+
+
+@Composable
+fun SplashScreen(
+    modifier: Modifier = Modifier,
+) {
+
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.error)
+    ) {
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = "SPLASH\nSCREEN",
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                lineHeight = 48.sp,
+                fontSize = 48.sp,
+                fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
+                color = MaterialTheme.colorScheme.background
+            )
+
+            Text(
+                text = "DEEPAK TIWARI",
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 9.sp,
+                fontSize = 10.sp,
+                fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier.padding(top = 12.dp)
             )
         }
     }
@@ -79,43 +258,7 @@ fun DeepLinkNavHost(modifier: Modifier = Modifier, startDestination: String, nav
 
 
 @Composable
-fun SplashScreen(modifier: Modifier = Modifier, duration: Long = 1000, shouldShowSplash: Uri?, showOtherScreen: () -> Unit) {
-
-    val updatedCall by rememberUpdatedState(showOtherScreen)
-
-    if (shouldShowSplash != null) {
-        updatedCall()
-        return
-    }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.error)
-    ) {
-        Text(text = "Splash Screen", color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
-    }
-
-    LaunchedEffect(Unit) {
-        delay(duration)
-        updatedCall()
-
-    }
-}
-
-@Composable
-fun Login(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.surface)
-    ) {
-        Text(text = "Login Screen", modifier = Modifier.align(Alignment.Center))
-    }
-}
-
-@Composable
-fun MainScreen(modifier: Modifier = Modifier, id: String?, onClick: () -> Unit = {}, shouldPushNotification: Boolean = false) {
+fun HomeScreen(modifier: Modifier = Modifier, id: String?, onClick: () -> Unit = {}, shouldPushNotification: Boolean = false) {
 
     Column(
         modifier
@@ -124,9 +267,7 @@ fun MainScreen(modifier: Modifier = Modifier, id: String?, onClick: () -> Unit =
     ) {
         Text(text = id ?: "Main Screen")
         Button(
-            modifier = Modifier,
-            enabled = shouldPushNotification,
-            onClick = onClick
+            modifier = Modifier, enabled = shouldPushNotification, onClick = onClick
         ) {
             Text(text = "Push Notification")
         }
@@ -153,8 +294,7 @@ fun pushNotification(context: Context, route: String) {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun CheckPermission(modifier: Modifier = Modifier, isGranted: (Boolean) -> Unit) {
-
+fun CheckPermission(isGranted: (Boolean) -> Unit) {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 
@@ -162,8 +302,8 @@ fun CheckPermission(modifier: Modifier = Modifier, isGranted: (Boolean) -> Unit)
 
         val requestPermissionLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            isGranted(isGranted)
+        ) {
+            isGranted(it)
         }
 
         LaunchedEffect(notificationPermissionState) {
@@ -176,6 +316,62 @@ fun CheckPermission(modifier: Modifier = Modifier, isGranted: (Boolean) -> Unit)
     }
 }
 
-const val BaseDeepLink = "https://www.researchanddevelopment.com"
+
+@Composable
+fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavHostController, currentDestination: NavDestination?) {
+
+    BottomAppBar(modifier = modifier) {
+        navItemList.forEach {
+            NavigationBarItem(
+                selected = currentDestination?.hierarchy?.any { (it.route ?: "").equals(it) } == true,
+                onClick = {
+                    navigate(navController, it)
+                },
+                icon = {
+                    Icon(Icons.Filled.Home, "home")
+                },
+                label = {
+                    Text(it)
+                }
+            )
+        }
+    }
+}
+
+private fun navigate(navController: NavHostController, screen: String) {
+    navController.navigate(screen) {
+        popUpTo("home") {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+
+@Composable
+fun ScreenMaker(name: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.surface),
+    ) {
+        Text(name,
+            Modifier
+                .align(Alignment.Center)
+                .clickable { onClick() })
+    }
+
+}
+
+const
+val BaseDeepLink = "https://www.researchanddevelopment.com"
+val navItemList = listOf("home", "search", "profile")
 val iD = "exampleId ${Random.nextInt(1, 100)}"
 
+
+@Preview
+@Composable
+private fun SplashPreview() {
+    SplashScreen()
+}
