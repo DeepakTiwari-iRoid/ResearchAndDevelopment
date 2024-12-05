@@ -49,7 +49,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
-import com.app.researchanddevelopment.AuthState
+import com.app.researchanddevelopment.GraphState
 import com.app.researchanddevelopment.MainActivity
 import com.app.researchanddevelopment.MainViewModel
 import com.app.researchanddevelopment.notification.NotificationUtils
@@ -69,23 +69,33 @@ fun DeepLinkApp(
 
     when (viewModel.authState) {
 
-        AuthState.LOADING -> {
+        GraphState.LOADING -> {
             SplashScreen(modifier = modifier)
         }
 
-        is AuthState.SUCCESS -> {
-            Surface(
-                modifier = modifier.then(Modifier.fillMaxSize()),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                DeepLinkNavHost(
-                    modifier = Modifier,
-                    startDestination = (viewModel.authState as AuthState.SUCCESS).route,
-                    navController = navController
-                )
-            }
+        is GraphState.SUCCESS -> {
+            MainScreen(viewModel, navController, modifier)
         }
 
+    }
+}
+
+
+@Composable
+fun MainScreen(
+    viewModel: MainViewModel,
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        DeepLinkNavHost(
+            modifier = modifier,
+            startDestination = (viewModel.authState as GraphState.SUCCESS).route,
+            navController = navController
+        )
     }
 }
 
