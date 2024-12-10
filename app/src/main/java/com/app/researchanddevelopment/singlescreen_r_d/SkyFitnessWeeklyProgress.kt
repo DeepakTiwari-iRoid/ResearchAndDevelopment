@@ -313,5 +313,5 @@ data class SkyFitnessWeeklyProgress(
 @Preview
 @Composable
 private fun WeeklyProgressScreenPreview() {
-    WeeklyProgressScreen(modifier = Modifier.fillMaxSize())
+    WeeklyProgressScreen2(modifier = Modifier.fillMaxSize())
 }

@@ -20,15 +20,15 @@ import androidx.compose.ui.unit.dp
 private val background2 = Color(0xFF252525)
 
 @Composable
-private fun WeeklyProgressScreen2(modifier: Modifier = Modifier) {
-    WeeklyProgressChartComponent(
+fun WeeklyProgressScreen2(modifier: Modifier = Modifier) {
+    WeeklyProgressChartComponent2(
         data = SkyFitnessWeeklyProgress2(),
         modifier = modifier
     )
 }
 
 @Composable
-private fun WeeklyProgressChartComponent(
+private fun WeeklyProgressChartComponent2(
     data: SkyFitnessWeeklyProgress2,
     modifier: Modifier = Modifier,
 ) {
