@@ -1,4 +1,4 @@
-package com.app.researchanddevelopment.singlescreen_r_d
+package com.app.researchanddevelopment.singlescreen_r_d.skaifitness
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
