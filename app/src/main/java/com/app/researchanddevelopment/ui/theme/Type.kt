@@ -2,33 +2,87 @@ package com.app.researchanddevelopment.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.app.researchanddevelopment.R
 
-// Set of Material typography styles to start with
-val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+
+val outFit = FontFamily(
+    Font(R.font.outfit_regular, FontWeight.Normal),
+    Font(R.font.outfit_semibold, FontWeight.SemiBold),
+    Font(R.font.outfit_extrabold, FontWeight.ExtraBold),
+    Font(R.font.outfit_black, FontWeight.Black),
+    Font(R.font.outfit_thin, FontWeight.Thin),
+    Font(R.font.outfit_extralight, FontWeight.ExtraLight),
+    Font(R.font.outfit_bold, FontWeight.Bold),
+    Font(R.font.outfit_light, FontWeight.Light),
+    Font(R.font.outfit_medium, FontWeight.Medium)
+)
+
+val skaiFitnessTypography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = outFit,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    /* Other default text styles to override
+    ),
+    displayMedium = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    displaySmall = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+
     titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = outFit,
         fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+    ),
+
+    titleMedium = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Medium,
+    ),
+    titleSmall = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Medium,
+    ),
+
+    bodyLarge = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    bodySmall = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Normal,
+    ),
+    labelLarge = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Medium,
+    ),
+    labelMedium = TextStyle(
+        fontFamily = outFit,
+        fontWeight = FontWeight.Medium,
     ),
     labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = outFit,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
     )
-    */
 )

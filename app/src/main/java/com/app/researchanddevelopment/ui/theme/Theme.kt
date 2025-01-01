@@ -52,7 +52,7 @@ fun ResearchAndDevelopmentTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = skaiFitnessTypography,
         content = content
     )
 }
