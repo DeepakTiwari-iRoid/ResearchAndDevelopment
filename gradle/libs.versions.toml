@@ -11,6 +11,7 @@ composeBom = "2024.11.00"
 navigationCompose = "2.8.4"
 navigationRuntimeKtx = "2.8.4"
 accompanistPermissions = "0.35.0-alpha"
+healthConnect = "1.1.0-alpha11"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -30,6 +31,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-accompanist = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
+health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
