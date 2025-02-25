@@ -2,6 +2,7 @@ package com.app.researchanddevelopment.wearables
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.mutableStateOf
@@ -14,15 +15,23 @@ import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.Record
+import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.DataOrigin
+import androidx.health.connect.client.request.AggregateRequest
+import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import java.time.Instant
 import java.time.ZonedDateTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 // The minimum android level that can use Health Connect
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
@@ -31,8 +40,7 @@ const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
  * Demonstrates reading and writing from Health Connect.
  */
 class HealthConnectManager(private val context: Context) {
-
-    private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+    val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
     var availability = mutableStateOf(HealthConnectAvailability.NOT_SUPPORTED)
         private set
@@ -71,20 +79,9 @@ class HealthConnectManager(private val context: Context) {
         return PermissionController.createRequestPermissionResultContract()
     }
 
-    /**
-     * TODO: Writes [WeightRecord] to Health Connect.
-     */
-    suspend fun writeWeightInput(weightInput: Double) {
-        Toast.makeText(context, "TODO: write weight input", Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * TODO: Reads in existing [WeightRecord]s.
-     */
-    suspend fun readWeightInputs(start: Instant, end: Instant): List<WeightRecord> {
-        // Toast.makeText(context, "TODO: read weight inputs", Toast.LENGTH_SHORT).show()
+    suspend fun readWeightInputs(start: Instant, end: Instant): List<StepsRecord> {
         val request = ReadRecordsRequest(
-            recordType = WeightRecord::class,
+            recordType = StepsRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
         )
         val response = healthConnectClient.readRecords(request)
@@ -92,18 +89,12 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /**
-     * TODO: Returns the weekly average of [WeightRecord]s.
-     */
-    suspend fun computeWeeklyAverage(start: Instant, end: Instant): Mass? {
-        // Toast.makeText(context, "TODO: get average weight", Toast.LENGTH_SHORT).show()
-        return null
-    }
-
-    /**
-     * TODO: Obtains a list of [ExerciseSessionRecord]s in a specified time frame.
+     * TODO: Obtains a list of [ExerciseSessionRecord]s in a specified time frame. An Exercise Session Record is a
+     * period of time given to an activity, that would make sense to a user, e.g. "Afternoon run"
+     * etc. It does not necessarily mean, however, that the user was *running* for that entire time,
+     * more that conceptually, this was the activity being undertaken.
      */
     suspend fun readExerciseSessions(start: Instant, end: Instant): List<ExerciseSessionRecord> {
-        // Toast.makeText(context, "TODO: read exercise sessions", Toast.LENGTH_SHORT).show()
         val request = ReadRecordsRequest(
             recordType = ExerciseSessionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(start, end)
@@ -112,36 +103,94 @@ class HealthConnectManager(private val context: Context) {
         return response.records
     }
 
-    /**
-     * TODO: Writes an [ExerciseSessionRecord] to Health Connect.
-     */
-    suspend fun writeExerciseSession(start: ZonedDateTime, end: ZonedDateTime) {
-        Toast.makeText(context, "TODO: write exercise session", Toast.LENGTH_SHORT).show()
-    }
 
     /**
-     * TODO: Build [HeartRateRecord].
+     * TODO: Reads aggregated data and raw data for selected data types, for a given [ExerciseSessionRecord].
      */
-    private fun buildHeartRateSeries(
-        sessionStartTime: ZonedDateTime,
-        sessionEndTime: ZonedDateTime,
-    ): HeartRateRecord {
-        TODO()
+    suspend fun readAssociatedSessionData(
+        uid: String,
+    ): ExerciseSessionData {
+        val exerciseSession = healthConnectClient.readRecord(ExerciseSessionRecord::class, uid)
+        // Use the start time and end time from the session, for reading raw and aggregate data.
+        val timeRangeFilter = TimeRangeFilter.between(
+            startTime = exerciseSession.record.startTime,
+            endTime = exerciseSession.record.endTime
+        )
+        val aggregateDataTypes = setOf(
+            ExerciseSessionRecord.EXERCISE_DURATION_TOTAL,
+            TotalCaloriesBurnedRecord.ENERGY_TOTAL,
+            HeartRateRecord.BPM_MAX,
+            StepsRecord.COUNT_TOTAL,
+        )
+        // Limit the data read to just the application that wrote the session. This may or may not
+        // be desirable depending on the use case: In some cases, it may be useful to combine with
+        // data written by other apps.
+
+        val aggregateRequest = AggregateRequest(
+            metrics = aggregateDataTypes,
+            timeRangeFilter = timeRangeFilter,
+        )
+
+        val aggregateData = healthConnectClient.aggregate(aggregateRequest)
+
+        return ExerciseSessionData(
+            uid = uid,
+            totalActiveTime = aggregateData[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL],
+            totalEnergyBurned = aggregateData[TotalCaloriesBurnedRecord.ENERGY_TOTAL],
+            maxHeartRate = aggregateData[HeartRateRecord.BPM_MAX],
+        )
     }
 
-    /**
-     * TODO: Obtains a changes token for the specified record types.
-     */
-    suspend fun getChangesToken(): String {
-        Toast.makeText(context, "TODO: get changes token", Toast.LENGTH_SHORT).show()
-        return String()
+
+    suspend fun getExerciseData(
+        healthConnectClient: HealthConnectClient,
+        startTime: Instant,
+        endTime: Instant
+    ): ExerciseSessionData {
+
+        val timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+
+        val aggregateDataTypes = setOf(
+            ExerciseSessionRecord.EXERCISE_DURATION_TOTAL, // Active duration
+            TotalCaloriesBurnedRecord.ENERGY_TOTAL,       // Calories burned
+            HeartRateRecord.BPM_MAX,
+            StepsRecord.COUNT_TOTAL// Max heart rate
+        )
+
+        val aggregateRequest = AggregateRequest(
+            metrics = aggregateDataTypes,
+            timeRangeFilter = timeRangeFilter
+        )
+
+        val aggregateData = healthConnectClient.aggregate(aggregateRequest)
+
+        return ExerciseSessionData(
+            totalActiveTime = aggregateData[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL],
+            totalEnergyBurned = aggregateData[TotalCaloriesBurnedRecord.ENERGY_TOTAL],
+            maxHeartRate = aggregateData[HeartRateRecord.BPM_MAX],
+            totalSteps = aggregateData[StepsRecord.COUNT_TOTAL]
+        )
     }
 
-    /**
-     * TODO: Retrieve changes from a changes token.
-     */
-    suspend fun getChanges(token: String): Flow<ChangesMessage> = flow {
-        Toast.makeText(context, "TODO: get new changes", Toast.LENGTH_SHORT).show()
+
+    suspend fun readStepsByTimeRange(
+        startTime: Instant,
+        endTime: Instant
+    ): List<StepsRecord> {
+        try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = StepsRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                )
+            )
+            Log.d("HealthSession Mngr", "${response.records}")
+            return response.records
+        } catch (e: Exception) {
+            // Run error handling here
+            Log.d("HealthSession Mngr", "${e.localizedMessage}")
+            return emptyList()
+        }
     }
 
     /**

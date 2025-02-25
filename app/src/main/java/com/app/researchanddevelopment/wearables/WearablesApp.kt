@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -86,6 +88,7 @@ fun SyncHealthConnectPreview(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 private fun WearableScreenPreview() {
+
     WearableScreen(
         modifier = Modifier.fillMaxSize(),
         healthConnectManager = HealthConnectManager(LocalContext.current),
@@ -126,6 +129,8 @@ fun WearableContent(
     viewModel: WearableViewModel
 ) {
 
+
+    val stepsFlow by viewModel.steps
 
     val context = LocalContext.current
 
@@ -201,12 +206,12 @@ fun WearableContent(
         }
 
         Column(
-            modifier = modifier,
+            modifier = modifier.verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
 
-            Text(text = "Steps: $steps")
+            Text(text = "Steps: ${stepsFlow.map { it.count }}")
             Text(text = "BMX: min $minBmx max $maxBmx")
 
             Spacer(modifier = Modifier.padding(18.dp))
@@ -217,6 +222,7 @@ fun WearableContent(
             ) {
                 Text("Fetch From Wearable")
             }
+
             Button(
                 onClick = {
                     if (availability == HealthConnectAvailability.INSTALLED) {
@@ -228,6 +234,17 @@ fun WearableContent(
                 shape = RoundedCornerShape(12)
             ) {
                 Text("Open Setting")
+            }
+
+            Button(
+                onClick = {
+                    if (availability == HealthConnectAvailability.INSTALLED) {
+                        viewModel.startStopSession()
+                    }
+                },
+                shape = RoundedCornerShape(12)
+            ) {
+                Text("Start/Stop Session")
             }
         }
     }
