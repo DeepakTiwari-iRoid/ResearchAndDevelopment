@@ -1,6 +1,8 @@
 package com.app.researchanddevelopment.wearables
 
 import android.content.Context
+import android.health.connect.AggregateRecordsResponse
+import android.health.connect.datatypes.HeartRateRecord.HeartRateSample
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -12,6 +14,7 @@ import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.changes.Change
 import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
+import androidx.health.connect.client.records.ExerciseCompletionGoal
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.Record
@@ -19,6 +22,7 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.DataOrigin
+import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -30,6 +34,10 @@ import java.time.ZonedDateTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Period
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -172,26 +180,98 @@ class HealthConnectManager(private val context: Context) {
         )
     }
 
-
     suspend fun readStepsByTimeRange(
-        startTime: Instant,
-        endTime: Instant
+        startTime: LocalDateTime,
+        endTime: LocalDateTime
     ): List<StepsRecord> {
         try {
+
             val response = healthConnectClient.readRecords(
                 ReadRecordsRequest(
                     recordType = StepsRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
                 )
             )
-            Log.d("HealthSession Mngr", "${response.records}")
+            Log.d("HealthSession Mngr", "rec ${response.records.map { Triple(it.count, it.startTime, it.endTime) }}")
+            val uniqueOrigins = response.records.map { it.metadata.dataOrigin.packageName }.toSet()
+            Log.d("HealthSession Mngr", "Available Data Origins: ${uniqueOrigins.toList()}")
             return response.records
         } catch (e: Exception) {
             // Run error handling here
-            Log.d("HealthSession Mngr", "${e.localizedMessage}")
+            Log.d("HealthSession Mngr", e.localizedMessage ?: "something went wrong")
             return emptyList()
         }
     }
+
+
+    suspend fun readAggregateStepsByTimeRange(
+        startTime: LocalDateTime,
+        endTime: LocalDateTime
+    ): Long {
+        try {
+
+            val response = healthConnectClient.aggregate(
+                AggregateRequest(
+                    metrics = setOf(StepsRecord.COUNT_TOTAL),
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+
+            val stepResult = response[StepsRecord.COUNT_TOTAL] ?: 0L
+            Log.d("HealthSession Mngr", "rec ${response.dataOrigins}")
+            Log.d("HealthSession Mngr", "setResult Count Total Aggregate : ${stepResult}")
+            return stepResult
+        } catch (e: Exception) {
+            // Run error handling here
+            Log.d("HealthSession Mngr", e.localizedMessage ?: "something went wrong")
+            return 0L
+        }
+    }
+
+
+    suspend fun readExerciseDataByTimeRange(
+        startTime: LocalDateTime,
+        endTime: LocalDateTime
+    ): ExerciseSessionData {
+        try {
+            val aggregateDataTypes = setOf(
+                StepsRecord.COUNT_TOTAL,
+                HeartRateRecord.BPM_MAX,
+                HeartRateRecord.BPM_MIN,
+                HeartRateRecord.BPM_AVG,
+                HeartRateRecord.MEASUREMENTS_COUNT,
+                TotalCaloriesBurnedRecord.ENERGY_TOTAL
+            )
+
+            val aggregateData = healthConnectClient.aggregate(
+                AggregateRequest(
+                    metrics = aggregateDataTypes,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+
+
+            val result = ExerciseSessionData(
+                totalEnergyBurned = aggregateData[TotalCaloriesBurnedRecord.ENERGY_TOTAL],
+                maxHeartRate = aggregateData[HeartRateRecord.BPM_MAX],
+                minHeartRate = aggregateData[HeartRateRecord.BPM_MIN],
+                avgHeartRate = aggregateData[HeartRateRecord.MEASUREMENTS_COUNT],
+                totalSteps = aggregateData[StepsRecord.COUNT_TOTAL]
+            )
+
+            /* val stepResult = response[StepsRecord.COUNT_TOTAL] ?: 0L
+             Log.d("HealthSession Mngr", "rec ${response.dataOrigins}")
+             Log.d("HealthSession Mngr", "rec ${stepResult}")*/
+
+            return result
+        } catch (e: Exception) {
+            // Run error handling here
+            Log.d("HealthSession Mngr", e.localizedMessage ?: "something went wrong")
+            return ExerciseSessionData(uid = "ERROR")
+        }
+
+    }
+
 
     /**
      * Convenience function to reuse code for reading data.

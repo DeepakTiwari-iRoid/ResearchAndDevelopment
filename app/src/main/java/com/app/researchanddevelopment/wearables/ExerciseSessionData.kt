@@ -14,5 +14,7 @@ data class ExerciseSessionData(
     val totalActiveTime: Duration? = null,
     val totalEnergyBurned: Energy? = null,
     val maxHeartRate: Long? = null,
+    val minHeartRate: Long? = null,
+    val avgHeartRate: Long? = null,
     val totalSteps: Long? = null,
 )

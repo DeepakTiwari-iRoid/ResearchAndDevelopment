@@ -23,11 +23,15 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
 import java.util.UUID
+import kotlin.time.Duration
 
 class WearableViewModel(
     private val healthConnectManager: HealthConnectManager
@@ -61,19 +65,37 @@ class WearableViewModel(
             Log.d("HealthSession", "In Function")
 
             tryWithPermissionsCheck {
-                startSession = ZonedDateTime.now().minusMinutes(30).withNano(0)
+                startSession = ZonedDateTime.now().minusMinutes(30).truncatedTo(ChronoUnit.DAYS)
                 endSession = ZonedDateTime.now()
 
+                val endTimeInstant = Instant.parse("2025-02-26T17:33:43.528Z")
+                val startTimeInstant = endTimeInstant.minus(java.time.Duration.ofHours(5))
 
-                Log.d("${startSession.toInstant()}", "${endSession.toInstant()}")
+                val endLocalZoneTime = LocalDateTime.now()
+                val startLocalZoneTime = endLocalZoneTime.minusHours(5)
 
-                steps.value = healthConnectManager.readStepsByTimeRange(
-                    startSession.toInstant(),
-                    endSession.toInstant()
+                Log.d("HealthSession", "Time ${startSession.toInstant()} ${endSession.toInstant()}")
+                val instant = Instant.parse("2025-02-26T03:05:43.528Z")
+                val step = healthConnectManager.readStepsByTimeRange(
+                    startTime = startLocalZoneTime,
+                    endTime = endLocalZoneTime
                 )
+                val aggregate = healthConnectManager.readAggregateStepsByTimeRange(
+                    startTime = startLocalZoneTime,
+                    endTime = endLocalZoneTime
+                )
+
+                val exerciseSessionData = healthConnectManager.readExerciseDataByTimeRange(
+                    startTime = startLocalZoneTime,
+                    endTime = endLocalZoneTime
+                )
+
+                steps.value = step
+                Log.d("HealthSession", "Final Values: ${step.map { it.count } + aggregate} ")
+                Log.d("HealthSession", "Exercise Session Data: $exerciseSessionData")
+
             }
         }
-
     }
 
     private suspend fun tryWithPermissionsCheck(block: suspend () -> Unit) {
