@@ -65,29 +65,24 @@ class WearableViewModel(
             Log.d("HealthSession", "In Function")
 
             tryWithPermissionsCheck {
-                startSession = ZonedDateTime.now().minusMinutes(30).truncatedTo(ChronoUnit.DAYS)
                 endSession = ZonedDateTime.now()
-
-                val endTimeInstant = Instant.parse("2025-02-26T17:33:43.528Z")
-                val startTimeInstant = endTimeInstant.minus(java.time.Duration.ofHours(5))
-
-                val endLocalZoneTime = LocalDateTime.now()
-                val startLocalZoneTime = endLocalZoneTime.minusHours(5)
+                startSession = endSession.minusHours(1)
 
                 Log.d("HealthSession", "Time ${startSession.toInstant()} ${endSession.toInstant()}")
-                val instant = Instant.parse("2025-02-26T03:05:43.528Z")
+
                 val step = healthConnectManager.readStepsByTimeRange(
-                    startTime = startLocalZoneTime,
-                    endTime = endLocalZoneTime
+                    startTime = startSession.toInstant(),
+                    endTime = endSession.toInstant()
                 )
+
                 val aggregate = healthConnectManager.readAggregateStepsByTimeRange(
-                    startTime = startLocalZoneTime,
-                    endTime = endLocalZoneTime
+                    startTime = startSession.toInstant(),
+                    endTime = endSession.toInstant()
                 )
 
                 val exerciseSessionData = healthConnectManager.readExerciseDataByTimeRange(
-                    startTime = startLocalZoneTime,
-                    endTime = endLocalZoneTime
+                    startTime = startSession.toInstant(),
+                    endTime = endSession.toInstant()
                 )
 
                 steps.value = step

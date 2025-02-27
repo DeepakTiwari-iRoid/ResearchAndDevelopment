@@ -72,6 +72,7 @@ class HealthConnectManager(private val context: Context) {
             .getFeatureStatus(feature) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
     }
 
+
     /**
      * Determines whether all the specified permissions are already granted. It is recommended to
      * call [PermissionController.getGrantedPermissions] first in the permissions flow, as if the
@@ -181,8 +182,8 @@ class HealthConnectManager(private val context: Context) {
     }
 
     suspend fun readStepsByTimeRange(
-        startTime: LocalDateTime,
-        endTime: LocalDateTime
+        startTime: Instant,
+        endTime: Instant
     ): List<StepsRecord> {
         try {
 
@@ -190,9 +191,13 @@ class HealthConnectManager(private val context: Context) {
                 ReadRecordsRequest(
                     recordType = StepsRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                    dataOriginFilter = setOf(DataOrigin("com.google.android.apps.fitness"))
                 )
             )
-            Log.d("HealthSession Mngr", "rec ${response.records.map { Triple(it.count, it.startTime, it.endTime) }}")
+            Log.d(
+                "HealthSession Mngr",
+                "rec ${response.records.map { Triple(it.count, it.startTime, it.endTime) }}"
+            )
             val uniqueOrigins = response.records.map { it.metadata.dataOrigin.packageName }.toSet()
             Log.d("HealthSession Mngr", "Available Data Origins: ${uniqueOrigins.toList()}")
             return response.records
@@ -205,8 +210,8 @@ class HealthConnectManager(private val context: Context) {
 
 
     suspend fun readAggregateStepsByTimeRange(
-        startTime: LocalDateTime,
-        endTime: LocalDateTime
+        startTime: Instant,
+        endTime: Instant
     ): Long {
         try {
 
@@ -230,8 +235,8 @@ class HealthConnectManager(private val context: Context) {
 
 
     suspend fun readExerciseDataByTimeRange(
-        startTime: LocalDateTime,
-        endTime: LocalDateTime
+        startTime: Instant,
+        endTime: Instant
     ): ExerciseSessionData {
         try {
             val aggregateDataTypes = setOf(
