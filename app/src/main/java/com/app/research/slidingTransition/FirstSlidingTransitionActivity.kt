@@ -9,10 +9,6 @@ import com.app.research.R
 import kotlin.math.abs
 
 
-/**
-Sliding Animation Between Fragment and Activity like Wiping Pager
-STATUS : Partially Passed.
- */
 class FirstSlidingTransitionActivity : AppCompatActivity() {
 
     private lateinit var gestureDetector: GestureDetectorCompat
