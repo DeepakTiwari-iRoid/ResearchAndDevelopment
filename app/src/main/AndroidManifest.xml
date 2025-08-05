@@ -17,7 +17,7 @@
     </queries>
 
     <application
-        android:name=".RAndDApplication"
+        android:name=".ResearchApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -72,6 +72,25 @@
 
         <activity
             android:name=".health_connect.HealthConnectActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+        <activity
+            android:name=".slidingTransition.FirstSlidingTransitionActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+        <activity
+            android:name=".slidingTransition.SecondSlidingTransitionActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+
+        <activity
+            android:name=".slidingTransition.verticalHorizontalPager.VHPagerActivity"
             android:exported="true"
             android:theme="@style/Theme.ResearchAndDevelopment">
         </activity>

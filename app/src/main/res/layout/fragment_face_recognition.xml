@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context="com.app.researchanddevelopment.faceml.FaceRecognitionFragment">
+    tools:context="com.app.research.faceml.FaceRecognitionFragment">
 
-    <com.app.researchanddevelopment.faceml.utils.CameraSourcePreview
+    <com.app.research.faceml.utils.CameraSourcePreview
         android:id="@+id/cameraSourcePreview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <com.app.researchanddevelopment.faceml.utils.GraphicOverlay
+    <com.app.research.faceml.utils.GraphicOverlay
         android:layout_width="match_parent"
         android:id="@+id/graphicOverlay"
         android:layout_height="match_parent" />

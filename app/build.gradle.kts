@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.app.researchanddevelopment"
+    namespace = "com.app.research"
     compileSdk = 36
 
     defaultConfig {
@@ -68,6 +68,8 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.camera.core)
     implementation(libs.play.services.vision.common)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.exoplayer)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
