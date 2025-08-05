@@ -1,11 +1,8 @@
-package com.app.researchanddevelopment.wearables
+package com.app.researchanddevelopment.health_connect
 
 import android.content.Context
-import android.health.connect.AggregateRecordsResponse
-import android.health.connect.datatypes.HeartRateRecord.HeartRateSample
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.mutableStateOf
 import androidx.health.connect.client.HealthConnectClient
@@ -13,33 +10,16 @@ import androidx.health.connect.client.HealthConnectClient.Companion.SDK_AVAILABL
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.changes.Change
-import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
-import androidx.health.connect.client.records.ExerciseCompletionGoal
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
-import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.DataOrigin
-import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.AggregateRequest
-import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.health.connect.client.units.Energy
-import androidx.health.connect.client.units.Mass
 import java.time.Instant
-import java.time.ZonedDateTime
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import java.io.IOException
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.Period
-import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 // The minimum android level that can use Health Connect
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
@@ -65,7 +45,6 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
-    @OptIn(ExperimentalFeatureAvailabilityApi::class)
     fun isFeatureAvailable(feature: Int): Boolean {
         return healthConnectClient
             .features

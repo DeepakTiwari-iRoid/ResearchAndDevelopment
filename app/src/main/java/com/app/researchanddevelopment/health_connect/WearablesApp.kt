@@ -1,4 +1,4 @@
-package com.app.researchanddevelopment.wearables
+package com.app.researchanddevelopment.health_connect
 
 import android.content.Intent
 import android.net.Uri
@@ -28,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,6 +96,18 @@ private fun WearableScreenPreview() {
         )
     )
 }
+
+/*
+val healthConnectManager =
+            (application as ResearchAndDevelopmentApplication).healthConnectManager
+                  WearableScreen(
+                      modifier = Modifier
+                          .fillMaxSize(),
+                     healthConnectManager = healthConnectManager,
+                     viewModel = WearableViewModel(healthConnectManager)
+           )
+*/
+
 
 
 @Composable

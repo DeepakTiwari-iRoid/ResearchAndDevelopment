@@ -1,10 +1,7 @@
-package com.app.researchanddevelopment.wearables
+package com.app.researchanddevelopment.health_connect
 
-import android.health.connect.datatypes.ExerciseSessionType
-import android.icu.util.MeasureUnit.MINUTE
 import android.os.RemoteException
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,19 +16,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalUnit
 import java.util.UUID
-import kotlin.time.Duration
 
 class WearableViewModel(
     private val healthConnectManager: HealthConnectManager
@@ -43,7 +31,6 @@ class WearableViewModel(
         HealthPermission.getReadPermission(StepsRecord::class),
     )
 
-    private var isStartExerciseRecord: Boolean = true
     private var startSession: ZonedDateTime = ZonedDateTime.now()
     private var endSession: ZonedDateTime = ZonedDateTime.now()
 
@@ -62,7 +49,6 @@ class WearableViewModel(
 
     fun startStopSession() {
         viewModelScope.launch(Dispatchers.Main) {
-            Log.d("HealthSession", "In Function")
 
             tryWithPermissionsCheck {
                 endSession = ZonedDateTime.now()
@@ -75,19 +61,10 @@ class WearableViewModel(
                     endTime = endSession.toInstant()
                 )
 
-                val aggregate = healthConnectManager.readAggregateStepsByTimeRange(
-                    startTime = startSession.toInstant(),
-                    endTime = endSession.toInstant()
-                )
-
-                val exerciseSessionData = healthConnectManager.readExerciseDataByTimeRange(
-                    startTime = startSession.toInstant(),
-                    endTime = endSession.toInstant()
-                )
 
                 steps.value = step
-                Log.d("HealthSession", "Final Values: ${step.map { it.count } + aggregate} ")
-                Log.d("HealthSession", "Exercise Session Data: $exerciseSessionData")
+
+                Log.d("HealthSession", "Final Values: ${step.map { it.count } } ")
 
             }
         }

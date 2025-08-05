@@ -52,7 +52,7 @@ import androidx.navigation.navigation
 import com.app.researchanddevelopment.GraphState
 import com.app.researchanddevelopment.MainActivity
 import com.app.researchanddevelopment.MainViewModel
-import com.app.researchanddevelopment.notification.NotificationUtils
+import com.app.researchanddevelopment.utils.NotificationUtils
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState

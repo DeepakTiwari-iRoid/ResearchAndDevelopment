@@ -1,6 +1,5 @@
-package com.app.researchanddevelopment.wearables
+package com.app.researchanddevelopment.health_connect
 
-import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.units.Energy
 import java.time.Duration
 

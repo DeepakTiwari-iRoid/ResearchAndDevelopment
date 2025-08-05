@@ -2,28 +2,32 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
-    <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
-    <uses-permission android:name="android.permission.health.READ_STEPS" />
-
-    <!-- declare Health Connect visibility -->
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <uses-permission android:name="android.permission.health.READ_STEPS" /> <!-- declare Health Connect visibility -->
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
     </queries>
 
     <application
+        android:name=".RAndDApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".ResearchAndDevelopmentApplication"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ResearchAndDevelopment"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -42,11 +46,44 @@
             <!-- Permission handling for Android 14+ -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".faceml.FaceMLActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+        <activity
+            android:name=".good_gps.GoodGpsActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+
+        <activity
+            android:name=".deeplink.DeepLinkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+        <activity
+            android:name=".health_connect.HealthConnectActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
+
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="face" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBeT4y6K8NXOJd2LSxbYs6Ax2iz57P6TiQ"/>
     </application>
-
-
 
 </manifest>

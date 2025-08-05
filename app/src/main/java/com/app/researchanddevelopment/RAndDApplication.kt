@@ -1,9 +1,9 @@
 package com.app.researchanddevelopment
 
 import android.app.Application
-import com.app.researchanddevelopment.wearables.HealthConnectManager
+import com.app.researchanddevelopment.health_connect.HealthConnectManager
 
-class ResearchAndDevelopmentApplication : Application() {
+class RAndDApplication : Application() {
     
     val healthConnectManager by lazy {
         HealthConnectManager(this)

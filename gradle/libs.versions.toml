@@ -1,20 +1,32 @@
 [versions]
-agp = "8.7.3"
-kotlin = "2.0.0"
-coreKtx = "1.15.0"
+agp = "8.11.1"
+guava = "33.4.8-android"
+kotlin ="2.2.0"
+coreKtx = "1.16.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
-composeBom = "2024.11.00"
-navigationCompose = "2.8.4"
-navigationRuntimeKtx = "2.8.4"
-accompanistPermissions = "0.35.0-alpha"
-healthConnect = "1.1.0-alpha11"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+lifecycleRuntimeKtx = "2.9.2"
+activityCompose = "1.10.1"
+composeBom = "2025.07.00"
+mapsCompose = "6.7.0"
+navigationCompose = "2.9.3"
+navigationRuntimeKtx = "2.9.3"
+accompanistPermissions = "0.37.3"
+healthConnect = "1.1.0-rc03"
+material = "1.12.0"
+appcompat = "1.7.1"
+constraintlayout = "2.2.1"
+navigationFragmentKtx = "2.9.3"
+navigationUiKtx = "2.9.3"
+mlVision = "16.1.7"
+cameraCore = "1.4.2"
+playServicesMaps = "19.2.0"
+playServicesVisionCommon = "19.1.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -32,6 +44,22 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-accompanist = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
 health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+mlkit-facedetection = { group = "com.google.mlkit", name = "face-detection", version.ref = "mlVision" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
+camera-vision = {group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "cameraCore" }
+camera-video = {group = "androidx.camera", name = "camera-video", version.ref = "cameraCore" }
+camera-view = {group = "androidx.camera", name = "camera-view", version.ref = "cameraCore" }
+camera-extensions = {group = "androidx.camera", name = "camera-extensions", version.ref = "cameraCore" }
+camera-lifecycle = {group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraCore" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
+play-services-vision-common = { group = "com.google.android.gms", name = "play-services-vision-common", version.ref = "playServicesVisionCommon" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
