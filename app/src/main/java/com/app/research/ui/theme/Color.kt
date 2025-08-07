@@ -17,3 +17,8 @@ val black25 = Color(0xFF252525)
 val aliceBlue = Color(0xFFEFFBFC)
 
 val white = Color(0xFFFFFFFF)
+
+val primaryGreen = Color(0xFF64B054)
+val GreyF2 = Color(0xFFF2F2F2)
+val Black23 = Color(0XFF232323)
+val Black60 = Color(0x99000000)

@@ -47,6 +47,13 @@ fun VStack(
 
 
 @Composable
-fun FullSizeCenterBox(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
-    Box(modifier = modifier.fillMaxSize(), content = content)
+fun FullSizeCenterBox(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+        content = content
+    )
 }

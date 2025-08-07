@@ -95,6 +95,12 @@
             android:theme="@style/Theme.ResearchAndDevelopment">
         </activity>
 
+        <activity
+            android:name=".ComposeHostActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ResearchAndDevelopment">
+        </activity>
+
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

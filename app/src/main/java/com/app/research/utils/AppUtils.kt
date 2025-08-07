@@ -1,5 +1,9 @@
 package com.app.research.utils
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
 import com.google.android.gms.maps.model.LatLng
 import kotlin.math.asin
 import kotlin.math.atan2
@@ -9,6 +13,19 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 object AppUtils {
+
+
+    fun <T> intent(
+        context: Context,
+        activity: Class<T>,
+        shouldStartActivity: Boolean = true,
+        bundle: Bundle? = null
+    ) =
+        Intent(context, activity).apply {
+            bundle?.let { putExtras(it) }
+            if (shouldStartActivity) context.startActivity(this@apply)
+        }
+
 
     fun getCurvePoints(start: LatLng, end: LatLng, curvature: Double = 0.2): List<LatLng> {
         val numPoints = 100

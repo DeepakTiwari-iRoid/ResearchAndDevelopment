@@ -3,7 +3,7 @@ package com.app.research
 import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Context
-import android.content.Intent
+import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.research.data.Constants
 import com.app.research.deeplink.DeepLinkActivity
 import com.app.research.faceml.FaceMLActivity
 import com.app.research.good_gps.GoodGpsActivity
@@ -40,6 +41,7 @@ import com.app.research.health_connect.HealthConnectActivity
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.slidingTransition.FirstSlidingTransitionActivity
 import com.app.research.slidingTransition.verticalHorizontalPager.VHPagerActivity
+import com.app.research.utils.AppUtils.intent
 
 @Preview(showBackground = true)
 @Composable
@@ -124,13 +126,13 @@ fun Item(
 
 
 enum class Screens {
+    ChatCustomPaging,
     GoodGps,
     SkaiRAndD,
     HealthConnect,
     DeepLink,
     FaceMl,
     ScreenSlidTransitionXML,
-
     VerticalHorizontalPagerXML,
 }
 
@@ -140,24 +142,26 @@ fun navigateToScreen(
     screen: Screens,
 ) {
 
-    fun <T> intent(activity: Class<T>, shouldStartActivity: Boolean = true) =
-        Intent(context, activity).apply {
-            if (shouldStartActivity) context.startActivity(this)
-        }
-
     when (screen) {
-        Screens.GoodGps -> intent(GoodGpsActivity::class.java)
-        Screens.FaceMl -> intent(FaceMLActivity::class.java)
-        Screens.DeepLink -> intent(DeepLinkActivity::class.java)
-        Screens.HealthConnect -> intent(HealthConnectActivity::class.java)
+        Screens.GoodGps -> intent(context, GoodGpsActivity::class.java)
+        Screens.FaceMl -> intent(context, FaceMLActivity::class.java)
+        Screens.DeepLink -> intent(context, DeepLinkActivity::class.java)
+        Screens.HealthConnect -> intent(context, HealthConnectActivity::class.java)
         Screens.ScreenSlidTransitionXML -> {
-            intent(FirstSlidingTransitionActivity::class.java, false).apply {
+            intent(context, FirstSlidingTransitionActivity::class.java, false).apply {
                 val options = ActivityOptions.makeSceneTransitionAnimation(context as Activity)
                 context.startActivity(this, options.toBundle())
             }
         }
 
-        Screens.VerticalHorizontalPagerXML -> intent(VHPagerActivity::class.java)
+        Screens.VerticalHorizontalPagerXML -> intent(context, VHPagerActivity::class.java)
+
+        Screens.ChatCustomPaging -> {
+            val bundle = Bundle().apply {
+                putString(Constants.KEYS.START_DEST, Constants.ComposeHostScreens.CHAT_SCREEN)
+            }
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
 
         else -> {
             Toast.makeText(

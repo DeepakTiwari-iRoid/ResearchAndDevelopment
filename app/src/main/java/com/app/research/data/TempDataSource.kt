@@ -1,5 +1,6 @@
 package com.app.research.data
 
+import com.app.research.chatpaging.Chat
 import com.app.research.singlescreen_r_d.skaifitness.MyProgressBarChart.Item
 
 object TempDataSource {
@@ -53,5 +54,15 @@ object TempDataSource {
         listOf(1),
         emptyList(),
     )
+
+    val chatList = List(50) { index ->
+        val decreasingIndex = 50 - index //descending order
+        Chat(
+            chatId = decreasingIndex,
+            message = "Message ${index + 1}",
+            isFromMe = decreasingIndex % 3 == 0,
+            createdAt = System.currentTimeMillis() - (decreasingIndex * 3600000L), //Newer MSG First
+        )
+    }
 
 }
