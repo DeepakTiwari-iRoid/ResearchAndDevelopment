@@ -61,7 +61,6 @@ fun ChatScreen(
     viewModel: ChatViewModel = ChatViewModel(),
 ) {
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     val remoteMessages = viewModel.remoteChatHistory.collectAsLazyPagingItems()

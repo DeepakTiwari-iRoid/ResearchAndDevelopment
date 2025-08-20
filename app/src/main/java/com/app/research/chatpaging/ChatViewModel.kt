@@ -64,10 +64,6 @@ class ChatViewModel : ViewModel() {
 
                 _localChatHistory.update { it + newChat }
             }
-
-            ChatEvent.LoadMore -> {
-
-            }
         }
     }
 }
@@ -96,9 +92,7 @@ sealed interface PagerUiState {
 
 sealed interface ChatEvent {
     data class SendMessage(val message: String) : ChatEvent
-    object LoadMore : ChatEvent
 }
-
 
 sealed interface GroupedChatItem {
     data class DateHeaderItem(val date: String) : GroupedChatItem
