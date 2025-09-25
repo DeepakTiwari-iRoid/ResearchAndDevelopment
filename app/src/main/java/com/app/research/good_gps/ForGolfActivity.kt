@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 
-class GoodGpsActivity : ComponentActivity() {
+class ForGolfActivity : ComponentActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

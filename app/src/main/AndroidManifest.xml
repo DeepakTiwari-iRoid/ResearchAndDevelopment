@@ -58,7 +58,7 @@
         </activity>
 
         <activity
-            android:name=".good_gps.GoodGpsActivity"
+            android:name=".good_gps.ForGolfActivity"
             android:exported="true"
             android:theme="@style/Theme.ResearchAndDevelopment">
         </activity>

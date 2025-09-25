@@ -1,16 +1,9 @@
 package com.app.research.good_gps
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.app.research.utils.AppUtils.calculateCurve
 import com.app.research.utils.AppUtils.getCurvePoints
 import com.google.android.gms.maps.model.CameraPosition
@@ -18,7 +11,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
-import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -47,13 +40,11 @@ fun MapWithMarkers(coordinates: Coordinates, modifier: Modifier = Modifier) {
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
-            coordinate.firstOrNull() ?: LatLng(0.0, 0.0), 14f
+            coordinate.firstOrNull() ?: LatLng(0.0, 0.0), 21f
         )
     }
 
     println("Zoom: ${cameraPositionState.position.zoom}")
-
-
 
     GoogleMap(
         properties = MapProperties(
@@ -61,7 +52,7 @@ fun MapWithMarkers(coordinates: Coordinates, modifier: Modifier = Modifier) {
         ), modifier = modifier.fillMaxSize(), cameraPositionState = cameraPositionState
     ) {
         coordinates.coordinates.forEach { coordinate ->
-            MarkerComposable(
+            /*MarkerComposable(
                 state = MarkerState(position = LatLng(coordinate.latitude, coordinate.longitude)),
                 title = "Coordinate Values",
             ) {
@@ -78,8 +69,17 @@ fun MapWithMarkers(coordinates: Coordinates, modifier: Modifier = Modifier) {
                         )
                         .padding(8.dp)
                 )
-            }
+            }*/
+            Marker(
+                state = MarkerState(
+                    position = LatLng(
+                        coordinate.latitude,
+                        coordinate.longitude
+                    )
+                )
+            )
         }
+
 
         val polyCoordinates = listOf(
             LatLng(36.5701202, -121.9470146),
@@ -94,5 +94,6 @@ fun MapWithMarkers(coordinates: Coordinates, modifier: Modifier = Modifier) {
         )
         Polyline(points = polyCoordinates, color = Color.Black.copy(alpha = 0.5f))
         Polyline(points = curvedPoints, color = Color.White)
+
     }
 }

@@ -93,6 +93,7 @@ dependencies {
 
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
+    implementation("com.google.maps.android:android-maps-utils:3.19.0")
 
     implementation(libs.converter.gson)
     implementation(libs.coil.compose)

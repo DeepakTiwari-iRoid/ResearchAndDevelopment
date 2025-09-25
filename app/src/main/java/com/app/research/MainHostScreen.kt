@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.app.research.data.Constants
 import com.app.research.deeplink.DeepLinkActivity
 import com.app.research.faceml.FaceMLActivity
-import com.app.research.good_gps.GoodGpsActivity
+import com.app.research.good_gps.ForGolfActivity
 import com.app.research.health_connect.HealthConnectActivity
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.slidingTransition.FirstSlidingTransitionActivity
@@ -127,7 +127,7 @@ fun Item(
 
 enum class Screens {
     ChatCustomPaging,
-    GoodGps,
+    ForGolfRND,
     SkaiRAndD,
     HealthConnect,
     DeepLink,
@@ -143,7 +143,7 @@ fun navigateToScreen(
 ) {
 
     when (screen) {
-        Screens.GoodGps -> intent(context, GoodGpsActivity::class.java)
+        Screens.ForGolfRND -> intent(context, ForGolfActivity::class.java)
         Screens.FaceMl -> intent(context, FaceMLActivity::class.java)
         Screens.DeepLink -> intent(context, DeepLinkActivity::class.java)
         Screens.HealthConnect -> intent(context, HealthConnectActivity::class.java)

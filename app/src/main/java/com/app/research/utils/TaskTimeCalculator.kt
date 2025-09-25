@@ -1,50 +1,50 @@
 package com.app.research.utils
 
-import com.app.research.utils.TimePart.AM
-import com.app.research.utils.TimePart.PM
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.abs
 
 
-fun main() {
-    calculateTaskTime(task).forEach { println(it) }
-}
+const val noWork = "NO WORK"
+const val lunch = "Lunch"
+const val internetIssue = "Internet Issue"
 
-val task = listOf(
-    Task("Edit Goal", 10, 58, AM),
-    Task("Delete Goal", 11, 20, AM),
+val tasks: List<Task> = listOf(
+    Task(1018, noWork, "am"),
+    Task(1040, "Tradesnap : Task Handover to surbhi"),
+    Task(1057, "ForGolf : KT taking from moulin/nidhi"),
+    Task(1142, "R&D About maps i.e Map Box or Google Map for better usage"),
+    Task(135, lunch, exclude = true),
+    Task(158, "R&D About maps i.e Map Box or Google Map for better usage"),
+    //Decided ill use google map only
+    Task(259, "Goal Pic"),
+    Task(getCurrentTime().first, "TimeOver", amPM = getCurrentTime().second.lowercase()),
 )
 
-fun calculateTaskTime(
-    task: List<Task>
-): List<TimeLine> {
-    if (task.size < 2) throw IllegalArgumentException("Task list should have at least 2 tasks")
 
-    val tempList = mutableListOf<Pair<String, Int>>()
-
-    for (i in 0 until task.size - 1) {
-        val duration = abs(task[i].timeInMins - task[i + 1].timeInMins)
-        tempList.add(Pair(task[i].task, duration))
-    }
-
-    return tempList.groupBy { it.first }.map { (task, durations) ->
-        TimeLine(
-            task = task,
-            duration = "${durations.sumOf { it.second } / 60}h ${durations.sumOf { it.second } % 60}m")
-    }
+fun main() {
+    calculateTaskTime(tasks).forEach { println(it) }
 }
 
 
+private fun convertTo24HourFormat(time: String): LocalTime {
+    val inputFormatter =
+        DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH) // Ensure proper locale
+    return LocalTime.parse(time, inputFormatter)
+}
+
 data class Task(
+    val time: Int, // 0105 PM
     val task: String,
-    val hour: Int,
-    val minute: Int,
-    val amPM: TimePart = PM
-) {
-    val timeInMins
-        get() = when (amPM) {
-            AM -> (hour * 60) + minute
-            PM -> (12 * 60) + (hour * 60) + minute
-        }
+    val amPM: String = "pm",
+    val exclude: Boolean = false
+)
+
+fun getCurrentTime(): Pair<Int, String> {
+    val currentTime = LocalTime.now()
+    val format = currentTime.format(DateTimeFormatter.ofPattern("hhmma", Locale.ENGLISH))
+    return format.dropLast(2).toInt() to format.takeLast(2)
 }
 
 data class TimeLine(
@@ -56,4 +56,40 @@ data class TimeLine(
     }
 }
 
-enum class TimePart { AM, PM }
+private fun calculateTimeInMinutes(time: Int, amPM: String): Int {
+    val formattedTime = "%02d:%02d %s".format(
+        time / 100,
+        time % 100,
+        amPM.uppercase()
+    ) // Ensure AM/PM uppercase
+    val localTime = convertTo24HourFormat(formattedTime)
+    return localTime.hour * 60 + localTime.minute
+}
+
+fun calculateTaskTime(
+    task: List<Task>
+): List<TimeLine> {
+    if (task.size < 2) throw IllegalArgumentException("Task list should have at least 2 tasks")
+
+    val tempList = mutableListOf<Pair<String, Int>>()
+
+    for (i in 0 until task.size - 1) {
+        if (task[i].exclude) continue
+        val currentTaskTimeInMinutes = calculateTimeInMinutes(task[i].time, task[i].amPM)
+        val nextTaskTimeInMinutes = calculateTimeInMinutes(task[i + 1].time, task[i + 1].amPM)
+        val duration = abs(currentTaskTimeInMinutes - nextTaskTimeInMinutes)
+        tempList.add(task[i].task to duration)
+    }
+    tempList.add("Buffer" to 30)
+    val totalHourTillNow = tempList.sumOf { it.second }
+    tempList.add("Total Hour: " to totalHourTillNow)
+    tempList.add("Total Hour Left: " to (8 * 60 + 45) - totalHourTillNow)
+    tempList.add("ORG Hr: " to totalHourTillNow - 30)
+
+    return tempList.groupBy { it.first }.map { (group, items) ->
+        TimeLine(
+            task = group,
+            duration = "${items.sumOf { it.second } / 60}h ${items.sumOf { it.second } % 60}m"
+        )
+    }
+}
