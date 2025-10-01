@@ -12,7 +12,7 @@ class ForGolfActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GoodGpsScreen(
+            ForeGolfScreen(
                 modifier = Modifier.fillMaxSize()
             )
         }

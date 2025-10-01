@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.runtime)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -93,7 +94,7 @@ dependencies {
 
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
-    implementation("com.google.maps.android:android-maps-utils:3.19.0")
+    implementation(libs.android.maps.utils)
 
     implementation(libs.converter.gson)
     implementation(libs.coil.compose)

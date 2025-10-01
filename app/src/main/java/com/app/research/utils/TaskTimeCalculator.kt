@@ -11,17 +11,13 @@ const val lunch = "Lunch"
 const val internetIssue = "Internet Issue"
 
 val tasks: List<Task> = listOf(
-    Task(1007, "No  Work", "am"),
-    Task(1036, "Mindful Monday", "am"),
-    Task(1040, "BinBag Demo giving", "am"),
-    Task(1206, "ForeGolf"),
-    Task(1259, "Binbag Hardik"),
-    Task(107, "ForeGolf"),
+    Task(1017, "No  Work", "am"),
+    Task(1052, "ForeGolf", "am"),
+    Task(1140, "Iroid Celebration", "am"),
+    Task(1158, "Internal Meeting : Laxman", "am"),
+    Task(1232, "ForeGolf"),
     Task(135, "Lunch", exclude = true),
-    Task(152, "ForeGolf"),
-    Task(352, "Vikas"),
-    Task(345, "Kiran, Vikas, Surbhi"),
-    Task(400, "ForeGolf"),
+    Task(158, "ForeGolf"),
     Task(getCurrentTime().first, "TimeOver", amPM = getCurrentTime().second.lowercase()),
 )
 
