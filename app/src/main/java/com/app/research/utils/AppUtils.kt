@@ -1,10 +1,11 @@
 package com.app.research.utils
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.google.android.gms.maps.model.LatLng
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -84,6 +85,20 @@ object AppUtils {
 
         val progress = ((zoom - minZoom) / (maxZoom - minZoom)).coerceIn(0f, 1f)
         return maxCurve * progress
+    }
+
+    inline fun <reified T> T.toJsonString(): String? {
+        return Gson().toJson(this)
+    }
+
+    inline fun <reified T> String.fromJsonString(): T? {
+        return try {
+            val type = object : TypeToken<T>() {}.type
+            Gson().fromJson(this, type)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
 }

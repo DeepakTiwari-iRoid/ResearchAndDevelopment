@@ -1,24 +1,434 @@
-package com.app.research.good_gps
+package com.app.research.good_gps.model
 
-import com.google.gson.Gson
+import com.app.research.utils.AppUtils.fromJsonString
 
-data class Coordinates(
-    val courseID: String = "",
-    val numCoordinates: Int = 0,
-    val coordinates: List<Coordinate> = emptyList()
-) {
-    data class Coordinate(
-        val poi: String = "",
-        val location: String = "",
-        val sideFW: String = "",
-        val hole: Int = 0,
-        val latitude: Double = 0.0,
-        val longitude: Double = 0.0
-    )
-}
+object ForeGolfTemp {
 
 
-val jsonFile = """{
+    private val clubsJson = """{
+  "apiRequestsLeft": "777",
+  "numClubs": 5,
+  "numAllClubs": 5,
+  "clubs": [
+    {
+      "clubID": "141520610397251566",
+      "clubName": "Pebble Beach Golf Links",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "USA",
+      "address": "1700 17 Mile Drive",
+      "timestampUpdated": "1704550359",
+      "distance": 0.062,
+      "measureUnit": "km",
+      "courses": [
+        {
+          "courseID": "012141520658891108829",
+          "courseName": "Pebble Beach",
+          "numHoles": 18,
+          "timestampUpdated": "1704549296",
+          "hasGPS": 1
+        },
+        {
+          "courseID": "011141520658921417047",
+          "courseName": "The Hay",
+          "numHoles": 9,
+          "timestampUpdated": "1672862025",
+          "hasGPS": 0
+        }
+      ]
+    },
+    {
+      "clubID": "141520610413056394",
+      "clubName": "Spyglass Hill Golf Course",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "USA",
+      "address": "Spyglass Hill Rd & Stevenson Dr",
+      "timestampUpdated": "1704548446",
+      "distance": 1.103,
+      "measureUnit": "km",
+      "courses": [
+        {
+          "courseID": "012141520665343800921",
+          "courseName": "18-hole course",
+          "numHoles": 18,
+          "timestampUpdated": "1704548446",
+          "hasGPS": 1
+        }
+      ]
+    },
+    {
+      "clubID": "141520610398953838",
+      "clubName": "Poppy Hills Golf Course",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "USA",
+      "address": "3200 Lopez Rd",
+      "timestampUpdated": "1704548040",
+      "distance": 1.254,
+      "measureUnit": "km",
+      "courses": [
+        {
+          "courseID": "0121346869355741",
+          "courseName": "18-hole course",
+          "numHoles": 18,
+          "timestampUpdated": "1704548040",
+          "hasGPS": 1
+        }
+      ]
+    },
+    {
+      "clubID": "141520610366390646",
+      "clubName": "Cypress Point Club",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "USA",
+      "address": "3150 17 Mile Drive",
+      "timestampUpdated": "1704550537",
+      "distance": 1.594,
+      "measureUnit": "km",
+      "courses": [
+        {
+          "courseID": "012141520647281224131",
+          "courseName": "Cypress Point",
+          "numHoles": 18,
+          "timestampUpdated": "1679922041",
+          "hasGPS": 1
+        }
+      ]
+    },
+    {
+      "clubID": "141520610418383036",
+      "clubName": "The Links at Spanish Bay",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "USA",
+      "address": "2700 17 Mile Drive",
+      "timestampUpdated": "1704550515",
+      "distance": 3.097,
+      "measureUnit": "km",
+      "courses": [
+        {
+          "courseID": "0121130522396078",
+          "courseName": "18-hole course",
+          "numHoles": 18,
+          "timestampUpdated": "1704548785",
+          "hasGPS": 1
+        }
+      ]
+    }
+  ]
+}""".trimIndent()
+    private val clubJson = """{
+  "clubID": "141520610397251566",
+  "clubName": "Pebble Beach Golf Links",
+  "city": "Pebble Beach",
+  "state": "CA",
+  "country": "USA",
+  "address": "1700 17 Mile Drive",
+  "postalCode": "93953",
+  "latitude": "36.584532",
+  "longitude": "-121.964661",
+  "website": "www.pebblebeach.com",
+  "telephone": "(800) 654-9300",
+  "timestampUpdated": "1672862167",
+  "courses": [
+    {
+      "courseID": "012141520658891108829",
+      "courseName": "Pebble Beach",
+      "numHoles": 18,
+      "timestampUpdated": "1672862167",
+      "hasGPS": 1
+    },
+    {
+      "courseID": "011141520658921417047",
+      "courseName": "The Hay",
+      "numHoles": 9,
+      "timestampUpdated": "1672862025",
+      "hasGPS": 0
+    }
+  ],
+  "apiRequestsLeft": "954"
+}""".trimIndent()
+    private val courseJson = """{
+  "clubID": "141520610397251566",
+  "clubName": "Pebble Beach Golf Links",
+  "address": "1700 17 Mile Drive",
+  "postalCode": "93953",
+  "city": "Pebble Beach",
+  "state": "CA",
+  "country": "USA",
+  "latitude": "36.5696553",
+  "longitude": "-121.9497555",
+  "website": "https://www.pebblebeach.com/golf/pebble-beach-golf-links",
+  "telephone": "+1 831-574-5609",
+  "courseID": "012141520658891108829",
+  "courseName": "Pebble Beach",
+  "numHoles": "18",
+  "timestampUpdated": "1704549296",
+  "hasGPS": "1",
+  "measure": "y",
+  "parsMen": [
+    4,
+    5,
+    4,
+    4,
+    3,
+    5,
+    3,
+    4,
+    4,
+    4,
+    4,
+    3,
+    4,
+    5,
+    4,
+    4,
+    3,
+    5
+  ],
+  "indexesMen": [
+    6,
+    10,
+    12,
+    16,
+    14,
+    2,
+    18,
+    4,
+    8,
+    3,
+    9,
+    17,
+    7,
+    1,
+    13,
+    11,
+    15,
+    5
+  ],
+  "parsWomen": [
+    4,
+    5,
+    4,
+    4,
+    3,
+    5,
+    3,
+    4,
+    4,
+    4,
+    4,
+    3,
+    4,
+    5,
+    4,
+    4,
+    3,
+    5
+  ],
+  "indexesWomen": [
+    10,
+    6,
+    12,
+    14,
+    16,
+    4,
+    18,
+    2,
+    8,
+    7,
+    9,
+    13,
+    11,
+    1,
+    15,
+    5,
+    17,
+    3
+  ],
+  "numTees": 5,
+  "tees": [
+    {
+      "teeID": "106671",
+      "teeName": "Blue",
+      "teeColor": "#00CCFF",
+      "length1": 378,
+      "length2": 509,
+      "length3": 397,
+      "length4": 333,
+      "length5": 189,
+      "length6": 498,
+      "length7": 107,
+      "length8": 416,
+      "length9": 483,
+      "length10": 444,
+      "length11": 370,
+      "length12": 202,
+      "length13": 401,
+      "length14": 559,
+      "length15": 393,
+      "length16": 400,
+      "length17": 182,
+      "length18": 541,
+      "courseRatingMen": 74.9,
+      "slopeMen": 144,
+      "courseRatingWomen": "",
+      "slopeWomen": "",
+      "courseRatingMenFront9": 74.2,
+      "courseRatingMenBack9": 75.6,
+      "slopeMenFront9": 141,
+      "slopeMenBack9": 147,
+      "courseRatingWomenFront9": "",
+      "courseRatingWomenBack9": "",
+      "slopeWomenFront9": "",
+      "slopeWomenBack9": ""
+    },
+    {
+      "teeID": "106672",
+      "teeName": "Gold",
+      "teeColor": "#CCCC00",
+      "length1": 349,
+      "length2": 491,
+      "length3": 381,
+      "length4": 308,
+      "length5": 145,
+      "length6": 490,
+      "length7": 98,
+      "length8": 388,
+      "length9": 463,
+      "length10": 428,
+      "length11": 349,
+      "length12": 187,
+      "length13": 390,
+      "length14": 545,
+      "length15": 375,
+      "length16": 378,
+      "length17": 176,
+      "length18": 531,
+      "courseRatingMen": 73.4,
+      "slopeMen": 137,
+      "courseRatingWomen": 78.2,
+      "slopeWomen": 146,
+      "courseRatingMenFront9": 72.6,
+      "courseRatingMenBack9": 74.2,
+      "slopeMenFront9": 131,
+      "slopeMenBack9": 143,
+      "courseRatingWomenFront9": 77,
+      "courseRatingWomenBack9": 79.4,
+      "slopeWomenFront9": 148,
+      "slopeWomenBack9": 144
+    },
+    {
+      "teeID": "106673",
+      "teeName": "White",
+      "teeColor": "#FFFFFF",
+      "length1": 337,
+      "length2": 458,
+      "length3": 340,
+      "length4": 295,
+      "length5": 134,
+      "length6": 465,
+      "length7": 94,
+      "length8": 364,
+      "length9": 436,
+      "length10": 408,
+      "length11": 338,
+      "length12": 176,
+      "length13": 370,
+      "length14": 490,
+      "length15": 338,
+      "length16": 368,
+      "length17": 166,
+      "length18": 506,
+      "courseRatingMen": 71.7,
+      "slopeMen": 135,
+      "courseRatingWomen": 76.2,
+      "slopeWomen": 139,
+      "courseRatingMenFront9": 71.2,
+      "courseRatingMenBack9": 72.2,
+      "slopeMenFront9": 129,
+      "slopeMenBack9": 141,
+      "courseRatingWomenFront9": 74.6,
+      "courseRatingWomenBack9": 77.8,
+      "slopeWomenFront9": 139,
+      "slopeWomenBack9": 139
+    },
+    {
+      "teeID": "224370",
+      "teeName": "Green",
+      "teeColor": "#66FF66",
+      "length1": 328,
+      "length2": 428,
+      "length3": 291,
+      "length4": 251,
+      "length5": 125,
+      "length6": 457,
+      "length7": 90,
+      "length8": 354,
+      "length9": 362,
+      "length10": 344,
+      "length11": 303,
+      "length12": 167,
+      "length13": 302,
+      "length14": 452,
+      "length15": 330,
+      "length16": 324,
+      "length17": 148,
+      "length18": 491,
+      "courseRatingMen": 68.7,
+      "slopeMen": 126,
+      "courseRatingWomen": 72.9,
+      "slopeWomen": 134,
+      "courseRatingMenFront9": 68.2,
+      "courseRatingMenBack9": 69.2,
+      "slopeMenFront9": 120,
+      "slopeMenBack9": 132,
+      "courseRatingWomenFront9": 72,
+      "courseRatingWomenBack9": 73.8,
+      "slopeWomenFront9": 134,
+      "slopeWomenBack9": 134
+    },
+    {
+      "teeID": "106674",
+      "teeName": "Red",
+      "teeColor": "#FF5050",
+      "length1": 310,
+      "length2": 358,
+      "length3": 285,
+      "length4": 197,
+      "length5": 111,
+      "length6": 420,
+      "length7": 87,
+      "length8": 349,
+      "length9": 350,
+      "length10": 338,
+      "length11": 298,
+      "length12": 126,
+      "length13": 295,
+      "length14": 446,
+      "length15": 247,
+      "length16": 312,
+      "length17": 142,
+      "length18": 454,
+      "courseRatingMen": 67.3,
+      "slopeMen": 124,
+      "courseRatingWomen": 71.7,
+      "slopeWomen": 132,
+      "courseRatingMenFront9": 66.4,
+      "courseRatingMenBack9": 68.2,
+      "slopeMenFront9": 121,
+      "slopeMenBack9": 127,
+      "courseRatingWomenFront9": 70.8,
+      "courseRatingWomenBack9": 72.6,
+      "slopeWomenFront9": 132,
+      "slopeWomenBack9": 132
+    }
+  ],
+  "numCoordinates": 100
+}""".trimIndent()
+    private val coordinatesJson = """{
   "courseID": "012141520658891108829",
   "numCoordinates": 136,
   "coordinates": [
@@ -1113,44 +1523,9 @@ val jsonFile = """{
   ]
 }""".trimIndent()
 
+    val clubs: Clubs = clubsJson.fromJsonString<Clubs>() ?: Clubs()
+    val club: Club = clubJson.fromJsonString<Club>() ?: Club()
+    val course: Course? = courseJson.fromJsonString<Course>()
+    val coordinates: Coordinates = coordinatesJson.fromJsonString<Coordinates>() ?: Coordinates()
 
-val fromGson = Gson().fromJson(jsonFile, Coordinates::class.java)
-
-fun main() {
-    fromGson.coordinates.forEach { co ->
-        println("LatLng(${co.latitude}, ${co.longitude}),")
-    }
-}
-
-enum class POI_NAME(val id: Int) {
-    GREEN(1),
-    GREEN_BUNKER(2),
-    FAIRWAY_BUNKER(3),
-    WATER(4),
-    TREES(5),
-    MARKER_100(6),
-    MARKER_150(7),
-    MARKER_200(8),
-    DOGLEG(9),
-    ROAD(10),
-    FRONT_TEE(11),
-    BACK_TEE(12);
-
-    companion object {
-        fun fromId(id: Int): POI_NAME? {
-            return entries.find { it.id == id }
-        }
-    }
-}
-
-enum class SIDE_OF_FAIRWAY(val id: Int) {
-    LEFT(1),
-    RIGHT(2),
-    CENTER(3);
-
-    companion object {
-        fun fromId(id: Int): SIDE_OF_FAIRWAY? {
-            return entries.find { it.id == id }
-        }
-    }
 }

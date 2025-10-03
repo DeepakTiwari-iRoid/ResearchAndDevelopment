@@ -12,10 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun HStack(
-    spaceBy: Dp,
+    spaceBy: Dp = 8.dp,
     modifier: Modifier = Modifier,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.spacedBy(spaceBy),
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
