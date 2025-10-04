@@ -30,6 +30,8 @@ media3Exoplayer = "1.8.0"
 pagingComposeAndroid = "3.3.6"
 coil-compose = "2.7.0"
 runtime = "1.9.2"
+# Utilities
+timber = "5.0.1"
 
 [libraries]
 android-maps-utils = { module = "com.google.maps.android:android-maps-utils", version.ref = "androidMapsUtils" }
@@ -73,6 +75,8 @@ androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.re
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-paging-compose-android = { group = "androidx.paging", name = "paging-compose-android", version.ref = "pagingComposeAndroid" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
+# Utilities
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 
 [plugins]

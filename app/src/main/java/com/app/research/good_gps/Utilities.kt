@@ -1,7 +1,20 @@
 package com.app.research.good_gps
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderColors
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
 import com.app.research.good_gps.model.Clubs
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -127,8 +140,96 @@ fun bearingBetween(from: LatLng, to: LatLng): Double {
     return (Math.toDegrees(atan2(y, x)) + 360) % 360
 }
 
+fun List<LatLng>.toLatLngBounds(): LatLngBounds.Builder {
+    val builder = LatLngBounds.builder()
+    this.forEach { builder.include(it) }
+    return builder
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VerticalSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    /*@IntRange(from = 0)*/
+    steps: Int = 0,
+    onValueChangeFinished: (() -> Unit)? = null,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    colors: SliderColors = SliderDefaults.colors()
+) {
+
+    Slider(
+        colors = colors,
+        interactionSource = interactionSource,
+        onValueChangeFinished = onValueChangeFinished,
+        steps = steps,
+        valueRange = valueRange,
+        enabled = enabled,
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .graphicsLayer {
+                rotationZ = 270f
+                transformOrigin = TransformOrigin(0f, 0f)
+            }
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(
+                    Constraints(
+                        minWidth = constraints.minHeight,
+                        maxWidth = constraints.maxHeight,
+                        minHeight = constraints.minWidth,
+                        maxHeight = constraints.maxHeight,
+                    )
+                )
+                layout(placeable.height, placeable.width) {
+                    placeable.place(-placeable.width, 0)
+                }
+            }
+            .then(modifier)
+    )
+}
 
 /*
+    MarkerComposable(
+                state = draggableMarker,
+                draggable = true,
+                tag = "Circular Dragger",
+                flat = true,
+                anchor = Offset(0.5f, 0.5f),
+                onClick = {
+                    println("Marker Dragged to ${it.position}")
+                    false
+                }
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_foregolf_drag_marker),
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Circle(
+                     center = draggableMarker.position,
+                     radius = 5.0,
+                     strokeColor = Color.White.copy(alpha = 0.5f),
+                     fillColor = Color.Transparent,
+                     strokeWidth = 2f
+                 )
+
+            }
+
+
+             Polyline(
+                color = Color.Blue,
+                points = listOf(
+                    LatLng(36.57020081124087, -121.948783993721),
+                    draggableMarker.position,
+                    LatLng(36.57068307134521, -121.94711364805698)
+                )
+            )
 
     val polyCoordinates = listOf(
         LatLng(36.5701202, -121.9470146),

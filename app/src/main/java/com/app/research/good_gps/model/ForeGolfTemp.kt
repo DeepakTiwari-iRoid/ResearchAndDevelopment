@@ -1525,7 +1525,7 @@ object ForeGolfTemp {
 
     val clubs: Clubs = clubsJson.fromJsonString<Clubs>() ?: Clubs()
     val club: Club = clubJson.fromJsonString<Club>() ?: Club()
-    val course: Course? = courseJson.fromJsonString<Course>()
+    val course: Course = courseJson.fromJsonString<Course>() ?: Course()
     val coordinates: Coordinates = coordinatesJson.fromJsonString<Coordinates>() ?: Coordinates()
 
 }

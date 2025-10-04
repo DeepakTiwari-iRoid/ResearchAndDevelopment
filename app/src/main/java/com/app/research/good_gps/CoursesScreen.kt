@@ -1,12 +1,15 @@
 package com.app.research.good_gps
 
 import android.annotation.SuppressLint
-import android.util.Log
+import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,22 +21,30 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
@@ -45,26 +56,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.app.research.good_gps.model.Coordinates
-import com.app.research.good_gps.model.ForeGolfTemp.coordinates
 import com.app.research.good_gps.model.POI_NAME
+import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.pxToDp
+import com.app.research.ui.theme.white
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import timber.log.Timber
+import kotlin.math.cos
 import kotlin.random.Random
 
 
@@ -75,6 +90,8 @@ fun CoursesScreen(
     viewModel: ForeGolfVM,
     modifier: Modifier = Modifier,
 ) {
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -96,7 +113,8 @@ fun CoursesScreen(
         }
     ) { innerPadding ->
         MapWithMarkers(
-            coordinatesObj = coordinates,
+            uiState = uiState,
+            event = viewModel::event,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -105,114 +123,116 @@ fun CoursesScreen(
 
 
 @SuppressLint("PotentialBehaviorOverride")
-@OptIn(MapsComposeExperimentalApi::class)
+@OptIn(MapsComposeExperimentalApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MapWithMarkers(coordinatesObj: Coordinates, modifier: Modifier = Modifier) {
+fun MapWithMarkers(
+    uiState: ForeGolfUiState,
+    event: (ForeGolfEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
 
-
-    val hole = coordinatesObj.coordinates.groupBy { it.hole }
-
-
-    val cameraPositionState = rememberCameraPositionState()
 
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    val green = uiState.selectedGround.find { it.poi == POI_NAME.GREEN }
+
+    val draggableMarker = remember { MarkerState(uiState.dragMarkPos) }
+    var sliderState by remember { mutableFloatStateOf(20f) }
+
+
+    val cameraPositionState = rememberCameraPositionState()
     println("Zoom: ${cameraPositionState.position.zoom}")
+    var mapLoaded by remember { mutableStateOf(false) }
 
-
-    val draggableMarker = remember { MarkerState(position = LatLng(0.0, 0.0)) }
-
-    val hull =
-        remember(coordinatesObj) { convexHull(emptyList()) } //TODO: change to coordinatesObj.coordinates.map { LatLng(it.latitude, it.longitude) }
-
-    val bounds = remember(hull) {
-        LatLngBounds.builder().apply {
-            hull.forEach { include(it) }
-        }.build()
+    var mapUiSettings by remember {
+        mutableStateOf(
+            MapUiSettings(
+                mapToolbarEnabled = false,
+                compassEnabled = false,
+                rotationGesturesEnabled = true,
+                tiltGesturesEnabled = false,
+                zoomGesturesEnabled = true,
+                zoomControlsEnabled = false
+            )
+        )
     }
 
-    var minZoomPreference by remember { mutableFloatStateOf(cameraPositionState.position.zoom) }
-
-    LaunchedEffect(hull) {
-
-        val update = CameraUpdateFactory.newLatLngBounds(bounds, 100)
-
-        // Move to bounds with padding
-        cameraPositionState.animate(update = update)
-
-        /**
-         * @param first param is Tee Box (Lat, Lng), Green (Lat, Lng)
-         * */
-        val green = LatLng(36.5703434, -121.9471006)
-        val teeBox = LatLng(36.5694545, -121.9418075)
-        // Step 2: Calculate bearing (first vs last point for orientation)
-        val bearing = bearingBetween(green, teeBox)
-
-        // Then apply rotation (bearing) while keeping zoom
-        val cameraPosition = CameraPosition.Builder()
-            .target(bounds.center) // Sets the center of the map to the location of the marker
-            .zoom(cameraPositionState.position.zoom + 1.5f) // Sets the zoom
-            .bearing(bearing.toFloat()) // Sets the orientation of the camera to east
-            .build() // Creates a CameraPosition from the builder
-
-
-        cameraPositionState.animate(update = CameraUpdateFactory.newCameraPosition(cameraPosition))
-        minZoomPreference = cameraPositionState.position.zoom
+    LaunchedEffect(uiState.dragMarkPos) {
+        draggableMarker.position = uiState.dragMarkPos
     }
-
 
     val whiteWidth = 0.5f
+    val restWidth = 1f - (whiteWidth - 0.2f)
 
-    Log.d("Marker", "Hull: $hull")
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
 
-        Box(
+        CourseMatrix(
             modifier = Modifier
+                .align(Alignment.CenterStart)
                 .fillMaxHeight()
                 .fillMaxWidth(whiteWidth)
                 .zIndex(1f)
-                .align(Alignment.CenterStart)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colorStops = arrayOf(
-                            0.0f to Color.White,
-                            0.6f to Color.White,
-                            1.0f to Color.Transparent    // Green fills the rest
-                        ),
-                        tileMode = TileMode.Clamp
-                    )
-                ),
-            contentAlignment = Alignment.CenterStart
+        )
+
+        HStack(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+                .fillMaxWidth()
+                .zIndex(1f),
+            verticalAlignment = Alignment.Bottom
         ) {
-            CourseMatrix(
+
+            Spacer(modifier.weight(.5f))
+
+            GroundChanging(
+                modifier = Modifier.weight(.5f),
+                onPrev = { event(ForeGolfEvent.OnPreviousHole) },
+                onNext = {
+                    event(ForeGolfEvent.OnNextHole)
+                }
+            )
+
+
+            VerticalSlider(
+                value = sliderState,
+                onValueChange = { sliderState = it },
+                colors = SliderDefaults.colors().copy(
+                    thumbColor = Color.White,
+                    activeTrackColor = Color.Blue,
+                    inactiveTrackColor = Color.White,
+                ),
+                valueRange = 5f..20f,
                 modifier = Modifier
-                    .wrapContentWidth()
-                    .fillMaxHeight()
+                    .padding(vertical = 18.dp)
+                    .size(150.dp, 10.dp)
+                    .zIndex(1f)
             )
         }
 
         GoogleMap(
             properties = MapProperties(
                 mapType = MapType.SATELLITE,
-                latLngBoundsForCameraTarget = bounds,
-                minZoomPreference = minZoomPreference,
+                latLngBoundsForCameraTarget = uiState.bounds,
             ),
+            uiSettings = mapUiSettings,
             modifier = Modifier
                 .fillMaxHeight()
                 .align(Alignment.CenterEnd)
-                .fillMaxWidth(1f - (whiteWidth - 0.2f)),
+                .fillMaxWidth(restWidth),
             cameraPositionState = cameraPositionState,
+            onMapLoaded = {
+                mapLoaded = true
+            }
         ) {
 
-            hole[1]?.forEach { latLng ->
+            uiState.selectedGround.forEach { latLng ->
                 MarkerComposable(
-                    state = MarkerState(position = LatLng(latLng.longitude, latLng.latitude)),
-                    title = "Point",
-                    snippet = "Lat: ${latLng.latitude}, Lng: ${latLng.longitude}"
+                    state = MarkerState(position = LatLng(latLng.latitude, latLng.longitude)),
                 ) {
                     val rnd = Random
                     val red = rnd.nextInt(0, 255)
@@ -224,73 +244,75 @@ fun MapWithMarkers(coordinatesObj: Coordinates, modifier: Modifier = Modifier) {
                             .size(10.dp)
                             .background(
                                 color = Color(red, green, blue, 255),
-                                shape = androidx.compose.foundation.shape.CircleShape
+                                shape = CircleShape
                             )
                     )
                 }
             }
 
-            /*        MarkerComposable(
-                        state = draggableMarker,
-                        draggable = true,
-                        tag = "Circular Dragger",
-                        flat = true,
-                        anchor = Offset(0.5f, 0.5f),
-                        onClick = {
-                            println("Marker Dragged to ${it.position}")
-                            false
-                        }
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_foregolf_drag_marker),
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp)
-                        )
+            // Draw circle
+            com.google.maps.android.compose.Circle(
+                center = draggableMarker.position,
+                radius = sliderState.toDouble(), // radius in meters
+                strokeWidth = 5f,
+                zIndex = 1f,
+                strokeColor = Color.Blue,
+                fillColor = Color.Blue.copy(alpha = 0.1f)
+            )
 
-                        *//* Circle(
-                 center = draggableMarker.position,
-                 radius = 5.0,
-                 strokeColor = Color.White.copy(alpha = 0.5f),
-                 fillColor = Color.Transparent,
-                 strokeWidth = 2f
-             )*//*
+            // Center Marker (draggable)
+            MarkerComposable(
+                state = draggableMarker,
+                draggable = true,
+                tag = "center",
+                anchor = Offset(0.5f, 0.5f),
+                zIndex = 1f,
+                flat = true,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .background(Color.White, shape = CircleShape)
+                        .border(1.dp, Color.Black, shape = CircleShape)
+                )
+            }
 
-        }*/
-
-
-            /*        Polyline(
-                        color = Color.Blue,
-                        points = listOf(
-                            LatLng(36.57020081124087, -121.948783993721),
-                            draggableMarker.position,
-                            LatLng(36.57068307134521, -121.94711364805698)
-                        )
-                    )*/
-
-
+            Polyline(
+                color = Color.White,
+                points = listOf(
+                    uiState.dragMarkPos,
+                    draggableMarker.position,
+                    uiState.currLoc
+                )
+            )
 
             MapEffect(Unit) { map ->
 
+
                 val markerDragListener = object : GoogleMap.OnMarkerDragListener {
-                    override fun onMarkerDrag(p0: Marker) {
-                        Log.d("TAG", "onMarkerDrag: ${p0.position}")
-                        draggableMarker.position = p0.position
-                        Log.d("TAG", "Draggable Marker: ${draggableMarker.position}")
+                    override fun onMarkerDrag(marker: Marker) {
+                        draggableMarker.position = marker.position
                     }
 
-                    override fun onMarkerDragEnd(p0: Marker) {
-                        draggableMarker.position = p0.position
-                        Log.d("TAG", "onMarkerDragEnd: ${p0.position}")
+                    override fun onMarkerDragEnd(marker: Marker) {
+                        draggableMarker.position = marker.position
+                        Timber.d("onMarkerDragEnd: ${marker.position} ")
                     }
 
-                    override fun onMarkerDragStart(p0: Marker) {
-                        draggableMarker.position = p0.position
-                        Log.d("TAG", "onMarkerDragStart: ${p0.position}")
+                    override fun onMarkerDragStart(marker: Marker) {
+                        draggableMarker.position = marker.position
+                        Timber.d("onMarkerDragStart: ${marker.position} ")
                     }
-
                 }
 
                 map.setOnMarkerDragListener(markerDragListener)
+
+                map.setOnMarkerClickListener { p0 ->
+                    Timber.d("onMarkerClick: ${p0.position}")
+                    draggableMarker.position = p0.position
+                    false
+                }
+
                 map.setOnMapLongClickListener { coordinate ->
                     /*scope.launch {
                         cameraPositionState.animate(
@@ -301,10 +323,46 @@ fun MapWithMarkers(coordinatesObj: Coordinates, modifier: Modifier = Modifier) {
                         )
                     }*/
                 }
-
             }
         }
     }
+
+    if (mapLoaded)
+        LaunchedEffect(uiState.hull) {
+
+            val update = CameraUpdateFactory.newLatLngBounds(uiState.bounds, 100)
+
+            // Move to bounds with padding
+            cameraPositionState.animate(update = update)
+
+            val fittedZoom = cameraPositionState.position.zoom
+
+            /**
+             * @param first param is Tee Box (Lat, Lng), Green (Lat, Lng)
+             * */
+            val green = uiState.dragMarkPos
+
+            val teeBox = uiState.currLoc
+
+            // Step 2: Calculate bearing (first vs last point for orientation)
+            val bearing = bearingBetween(teeBox, green)
+
+            // Then apply rotation (bearing) while keeping zoom
+            val cameraPosition = CameraPosition.Builder()
+                .target(uiState.bounds.center) // Sets the center of the map to the location of the marker
+                .zoom(fittedZoom) // optional offset
+                .bearing(bearing.toFloat()) // Sets the orientation of the camera to east
+                .build() // Creates a CameraPosition from the builder
+
+
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newCameraPosition(
+                    cameraPosition
+                )
+            )
+            // Step 6: Update your minZoom to match
+//            minZoomPreference = fittedZoom
+        }
 }
 
 
@@ -316,20 +374,40 @@ private fun CourseMatrix(
 
     var maxSize by remember { mutableFloatStateOf(0f) }
 
-    LazyColumn(
-        modifier = modifier.graphicsLayer {
-            maxSize = if (size.width > maxSize) size.width else maxSize
-        },
-        horizontalAlignment = Alignment.End
+    Box(
+        modifier = modifier
+            .background(
+                brush = Brush.horizontalGradient(
+                    colorStops = arrayOf(
+                        0.0f to Color.White,
+                        0.6f to Color.White,
+                        8.0f to Color.Transparent    // Green fills the rest
+                    ),
+                    tileMode = TileMode.Clamp
+                )
+            ),
+        contentAlignment = Alignment.CenterStart
     ) {
-        items(items = matrix) { item ->
-            StatBadge(
-                numberText = item.id.toString(),
-                labelText = item.title,
-                dividerWidth = maxSize,
-                modifier = Modifier
-                    .padding(vertical = 8.dp),
-            )
+
+        LazyColumn(
+            modifier = Modifier
+                .wrapContentWidth()
+                .fillMaxHeight()
+                .graphicsLayer {
+                    maxSize = if (size.width > maxSize) size.width else maxSize
+                },
+            horizontalAlignment = Alignment.End
+        ) {
+            items(items = matrix) { item ->
+                StatBadge(
+                    numberText = item.id.toString(),
+                    labelText = item.title,
+                    dividerWidth = maxSize,
+                    color = if (item == POI_NAME.GREEN) Color(0xFF00982A) else Color(0xFF111111),
+                    modifier = Modifier
+                        .padding(vertical = 8.dp),
+                )
+            }
         }
     }
 }
@@ -391,4 +469,53 @@ fun StatBadgePreview() {
             color = Color.Black // transparent
         )
     }
+}
+
+
+@Composable
+fun GroundChanging(
+    modifier: Modifier = Modifier,
+    onPrev: () -> Unit,
+    onNext: () -> Unit
+) {
+
+    HStack(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconButton(
+            onClick = onPrev,
+            modifier = Modifier
+                .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                .size(48.dp)
+        ) {
+            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null, tint = white)
+        }
+
+        IconButton(
+            onClick = onNext,
+            modifier = Modifier
+                .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                .size(48.dp)
+        ) {
+            Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null, tint = white)
+        }
+    }
+}
+
+
+/**
+ * Extension function to find the distance from this to another LatLng object
+ */
+private fun LatLng.distanceFrom(other: LatLng): Double {
+    val result = FloatArray(1)
+    Location.distanceBetween(latitude, longitude, other.latitude, other.longitude, result)
+    return result[0].toDouble()
+}
+
+private fun LatLng.getPointAtDistance(distance: Double): LatLng {
+    val radiusOfEarth = 6371009.0
+    val radiusAngle = (Math.toDegrees(distance / radiusOfEarth)
+            / cos(Math.toRadians(latitude)))
+    return LatLng(latitude, longitude + radiusAngle)
 }

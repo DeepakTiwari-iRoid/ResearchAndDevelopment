@@ -48,13 +48,3 @@ data class Course(
     @SerializedName("hasGPS")
     val hasGPS: Int = 0
 )
-
-
-class ApiResponse<T>(
-    @SerializedName("status")
-    val status: String = "",
-    @SerializedName("message")
-    val message: String = "",
-    @SerializedName("data")
-    val data: T
-)

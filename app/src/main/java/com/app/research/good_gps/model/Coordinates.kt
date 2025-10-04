@@ -1,18 +1,28 @@
 package com.app.research.good_gps.model
 
+import com.google.gson.annotations.SerializedName
+
 data class Coordinates(
     val courseID: String = "",
     val numCoordinates: Int = 0,
     val coordinates: List<Coordinate> = emptyList()
 ) {
     data class Coordinate(
-        val poi: Int = 0,
-        val location: Int = 0,
-        val sideFW: Int = 0,
+        @SerializedName("poi")
+        val poiID: Int = 0,
+        @SerializedName("location")
+        val locationID: Int = 0,
+        @SerializedName("sideFW")
+        val sideID: Int = 0,
         val hole: Int = 0,
         val latitude: Double = 0.0,
         val longitude: Double = 0.0
-    )
+    ) {
+        val poi: POI_NAME get() = POI_NAME.fromId(poiID)
+        val sideFW: SIDE_OF_FAIRWAY get() = SIDE_OF_FAIRWAY.fromId(sideID)
+        val location: LOCATION get() = LOCATION.fromId(locationID)
+        val latLng get() = com.google.android.gms.maps.model.LatLng(latitude, longitude)
+    }
 }
 
 
@@ -31,8 +41,8 @@ enum class POI_NAME(val id: Int, val title: String) {
     BACK_TEE(12, "Back Tee"), ;
 
     companion object {
-        fun fromId(id: Int): POI_NAME? {
-            return entries.find { it.id == id }
+        fun fromId(id: Int): POI_NAME {
+            return entries.find { it.id == id } ?: ROAD
         }
     }
 }
@@ -43,8 +53,20 @@ enum class SIDE_OF_FAIRWAY(val id: Int, val title: String) {
     CENTER(3, "Center");
 
     companion object {
-        fun fromId(id: Int): SIDE_OF_FAIRWAY? {
-            return entries.find { it.id == id }
+        fun fromId(id: Int): SIDE_OF_FAIRWAY {
+            return entries.find { it.id == id } ?: LEFT
+        }
+    }
+}
+
+enum class LOCATION(val id: Int, val title: String) {
+    FRONT(1, "Front"),
+    MIDDLE(2, "Middle"),
+    BACK(3, "Back");
+
+    companion object {
+        fun fromId(id: Int): LOCATION {
+            return entries.find { it.id == id } ?: MIDDLE
         }
     }
 }
