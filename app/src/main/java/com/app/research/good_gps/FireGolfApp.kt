@@ -15,7 +15,7 @@ fun ForeGolfApp(
 
     NavHost(
         navController = navHostController,
-        startDestination = "Clubs",
+        startDestination = "Courses",
         modifier = modifier
     ) {
 

@@ -68,6 +68,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.RoundCap
+import com.google.maps.android.SphericalUtil
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
@@ -153,7 +155,7 @@ fun MapWithMarkers(
                 rotationGesturesEnabled = true,
                 tiltGesturesEnabled = false,
                 zoomGesturesEnabled = true,
-                zoomControlsEnabled = false
+                zoomControlsEnabled = true
             )
         )
     }
@@ -171,6 +173,22 @@ fun MapWithMarkers(
     ) {
 
         CourseMatrix(
+            dotF5 = {
+                SphericalUtil.computeLength(
+                    listOf(
+                        draggableMarker.position,
+                        uiState.currLoc
+                    )
+                ).toInt()
+            },
+            dotF20 = {
+                SphericalUtil.computeLength(
+                    listOf(
+                        uiState.dragMarkPos,
+                        draggableMarker.position
+                    )
+                ).toInt()
+            },
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .fillMaxHeight()
@@ -218,6 +236,7 @@ fun MapWithMarkers(
             properties = MapProperties(
                 mapType = MapType.SATELLITE,
                 latLngBoundsForCameraTarget = uiState.bounds,
+                minZoomPreference = MAX_ZOOM_OUT
             ),
             uiSettings = mapUiSettings,
             modifier = Modifier
@@ -277,16 +296,25 @@ fun MapWithMarkers(
                 )
             }
 
+
             Polyline(
                 color = Color.White,
                 points = listOf(
                     uiState.dragMarkPos,
                     draggableMarker.position,
-                    uiState.currLoc
-                )
+                ),
+                startCap = RoundCap(),
+                pattern = PolyLinePattern().setDashLength(20f).DOT_PATTERN
             )
 
-            MapEffect(Unit) { map ->
+            Polyline(
+                color = Color.White,
+                points = listOf(draggableMarker.position, uiState.currLoc),
+                startCap = RoundCap(),
+                pattern = PolyLinePattern().setDashLength(5f).DOT_PATTERN
+            )
+
+            MapEffect { map ->
 
 
                 val markerDragListener = object : GoogleMap.OnMarkerDragListener {
@@ -369,6 +397,8 @@ fun MapWithMarkers(
 @Composable
 private fun CourseMatrix(
     modifier: Modifier = Modifier,
+    dotF5: () -> Int = { 0 },
+    dotF20: () -> Int = { 0 },
     matrix: List<POI_NAME> = POI_NAME.entries,
 ) {
 
@@ -381,7 +411,7 @@ private fun CourseMatrix(
                     colorStops = arrayOf(
                         0.0f to Color.White,
                         0.6f to Color.White,
-                        8.0f to Color.Transparent    // Green fills the rest
+                        6.0f to Color.Transparent    // Green fills the rest
                     ),
                     tileMode = TileMode.Clamp
                 )
@@ -398,6 +428,28 @@ private fun CourseMatrix(
                 },
             horizontalAlignment = Alignment.End
         ) {
+
+            item {
+                VStack(8.dp) {
+                    StatBadge(
+                        numberText = dotF5().toString(),
+                        labelText = "5F DOT",
+                        dividerWidth = maxSize,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                    )
+
+                    StatBadge(
+                        numberText = dotF20().toString(),
+                        labelText = "20F DOT",
+                        dividerWidth = maxSize,
+                        color = Color(0xFFE18500),
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                    )
+                }
+            }
             items(items = matrix) { item ->
                 StatBadge(
                     numberText = item.id.toString(),
@@ -430,7 +482,7 @@ fun StatBadge(
         // small label on top
         Text(
             text = labelText,
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = color,
             textAlign = TextAlign.End,
@@ -441,7 +493,7 @@ fun StatBadge(
         // big number below
         Text(
             text = numberText,
-            fontSize = 32.sp,
+            fontSize = 30.sp,
             fontWeight = FontWeight.ExtraBold,
             color = color,
             textAlign = TextAlign.End,

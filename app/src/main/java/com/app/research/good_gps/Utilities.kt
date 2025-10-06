@@ -13,8 +13,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import com.app.research.good_gps.model.Clubs
+import com.google.android.gms.maps.model.Dash
+import com.google.android.gms.maps.model.Dot
+import com.google.android.gms.maps.model.Gap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.PatternItem
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -193,77 +197,28 @@ fun VerticalSlider(
     )
 }
 
-/*
-    MarkerComposable(
-                state = draggableMarker,
-                draggable = true,
-                tag = "Circular Dragger",
-                flat = true,
-                anchor = Offset(0.5f, 0.5f),
-                onClick = {
-                    println("Marker Dragged to ${it.position}")
-                    false
-                }
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_foregolf_drag_marker),
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp)
-                )
 
-                Circle(
-                     center = draggableMarker.position,
-                     radius = 5.0,
-                     strokeColor = Color.White.copy(alpha = 0.5f),
-                     fillColor = Color.Transparent,
-                     strokeWidth = 2f
-                 )
+val MAX_ZOOM_OUT = 15.98f
 
-            }
+class PolyLinePattern {
 
+    private var PATTERN_DASH_LENGTH_PX = 20f
 
-             Polyline(
-                color = Color.Blue,
-                points = listOf(
-                    LatLng(36.57020081124087, -121.948783993721),
-                    draggableMarker.position,
-                    LatLng(36.57068307134521, -121.94711364805698)
-                )
-            )
+    fun setDashLength(length: Float): PolyLinePattern {
+        PATTERN_DASH_LENGTH_PX = length
+        return this
+    }
 
-    val polyCoordinates = listOf(
-        LatLng(36.5701202, -121.9470146),
-        LatLng(36.570013, -121.948721),
-    )
+    val GAP: Gap
+        get() = Gap(PATTERN_DASH_LENGTH_PX)
+    val DASH: Dash
+        get() = Dash(PATTERN_DASH_LENGTH_PX)
+    val DOT: Dot
+        get() = Dot()
 
-    // Usage
-    val curvedPoints = getCurvePoints(
-        polyCoordinates[0],
-        polyCoordinates[1],
-        calculateCurve(cameraPositionState.position.zoom)
-    )
+    val DASH_PATTERN: List<PatternItem>
+        get() = listOf(GAP, DASH)
 
-    val startP = LatLng(36.57020081124087, -121.948783993721)
-    val midP = draggableMarker.position //draggable marker position
-    val endP = LatLng(36.57068307134521, -121.94711364805698)
-
-    val firstSegmentDistance = getDistanceFromLatLonInKm(startP, midP)
-    val secondSegmentDistance = getDistanceFromLatLonInKm(midP, endP)
-
-    val midPoint1 = rememberUpdatedMarkerState(
-        LatLng(
-            (startP.latitude + midP.latitude) / 2,
-            (startP.longitude + midP.longitude) / 2
-        )
-    )
-
-    val midPoint2 = rememberUpdatedMarkerState(
-        LatLng(
-            (midP.latitude + endP.latitude) / 2,
-            (midP.longitude + endP.longitude) / 2
-        )
-    )
-val outerHull = remember(coordinatesObj) { expandPolygon(hull, 100.0) }
-          Polyline(points = polyCoordinates, color = Color.Black.copy(alpha = 0.5f))
-          Polyline(points = curvedPoints, color = Color.White)
-  */
+    val DOT_PATTERN: List<PatternItem>
+        get() = listOf(GAP, DOT)
+}
