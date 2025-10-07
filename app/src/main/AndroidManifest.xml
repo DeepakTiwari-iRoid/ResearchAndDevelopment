@@ -12,6 +12,13 @@
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
     <uses-permission android:name="android.permission.health.READ_STEPS" /> <!-- declare Health Connect visibility -->
+    
+    <!-- Network permissions for WebSocket connections -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/><!-- GPS BASE LOCATION  -->
+
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
     </queries>
@@ -26,6 +33,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ResearchAndDevelopment"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <activity

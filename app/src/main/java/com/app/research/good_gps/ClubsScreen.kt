@@ -1,5 +1,6 @@
 package com.app.research.good_gps
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +54,7 @@ import com.app.research.good_gps.model.ForeGolfTemp
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClubsScreen(

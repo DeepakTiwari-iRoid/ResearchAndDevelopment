@@ -5,6 +5,8 @@ import com.app.research.good_gps.model.Coordinates
 import com.app.research.good_gps.model.ForeGolfTemp
 import com.app.research.good_gps.model.LOCATION
 import com.app.research.good_gps.model.POI_NAME
+import com.app.research.good_gps.model.Payload
+import com.app.research.good_gps.utils.SocketHelper
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +25,14 @@ class ForeGolfVM : ViewModel() {
     private val grounds = coursesCords.coordinates.groupBy { it.hole }
 
 
+    private val socketHelper = SocketHelper(
+        endPoint = SocketHelper.END_POINT,
+        token = SocketHelper.TOKEN
+    )
+
     init {
         updateGround()
+        socketHelper.socket.connect()
     }
 
     fun event(event: ForeGolfEvent) {
@@ -46,6 +54,25 @@ class ForeGolfVM : ViewModel() {
             is ForeGolfEvent.ChangeDistMarkPos -> {
                 updateDistMarkPos(event.latLng)
             }
+
+            is ForeGolfEvent.UpdateGPSLoc -> {
+                updateGpsLoc(event.latLng)
+            }
+        }
+    }
+
+    private fun updateGpsLoc(latLng: LatLng) {
+        if (socketHelper.socket.isConnected()) {
+            val payload = Payload(
+                lat = latLng.latitude.toString(),
+                lng = latLng.longitude.toString(),
+                timestamp = "",
+                accuracy = 10,
+                speed = 5.2
+            )
+
+            /*val obj =
+                socketHelper.socket.emit(SocketHelper.UPDATE_USER_LOC, payload)*/
         }
     }
 
@@ -71,6 +98,11 @@ class ForeGolfVM : ViewModel() {
             )
         }
     }
+
+    override fun onCleared() {
+        socketHelper.socket.disconnect()
+        super.onCleared()
+    }
 }
 
 
@@ -79,6 +111,8 @@ sealed interface ForeGolfEvent {
     object OnPreviousHole : ForeGolfEvent
 
     data class ChangeDistMarkPos(val latLng: LatLng) : ForeGolfEvent
+
+    data class UpdateGPSLoc(val latLng: LatLng) : ForeGolfEvent
 }
 
 

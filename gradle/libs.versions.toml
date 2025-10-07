@@ -31,6 +31,7 @@ pagingComposeAndroid = "3.3.6"
 coil-compose = "2.7.0"
 runtime = "1.9.2"
 # Utilities
+socketIo = "0.6.0"
 timber = "5.0.1"
 
 [libraries]
@@ -76,6 +77,7 @@ androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplaye
 androidx-paging-compose-android = { group = "androidx.paging", name = "paging-compose-android", version.ref = "pagingComposeAndroid" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 # Utilities
+socket-io = { module = "dev.icerock.moko:socket-io", version.ref = "socketIo" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 

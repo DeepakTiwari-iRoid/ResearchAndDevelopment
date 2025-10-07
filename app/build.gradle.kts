@@ -1,9 +1,9 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    kotlin("native.cocoapods")
 }
 
 android {
@@ -101,4 +101,8 @@ dependencies {
 
     implementation(libs.converter.gson)
     implementation(libs.coil.compose)
+
+    //socket-io
+    implementation(libs.socket.io)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }

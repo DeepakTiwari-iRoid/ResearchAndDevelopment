@@ -1,5 +1,7 @@
 package com.app.research.good_gps
 
+import MultiPermissionHandler
+import android.Manifest
 import android.annotation.SuppressLint
 import android.location.Location
 import androidx.compose.foundation.Image
@@ -56,9 +58,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.app.research.good_gps.model.POI_NAME
+import com.app.research.good_gps.utils.RequestLocationUpdate
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.pxToDp
@@ -85,6 +90,7 @@ import kotlin.math.cos
 import kotlin.random.Random
 
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoursesScreen(
@@ -121,6 +127,30 @@ fun CoursesScreen(
         )
     }
 
+
+    val permissions = listOf(
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    )
+
+    val ctx = LocalContext.current
+
+    val requestLocationUpdate = RequestLocationUpdate(ctx) {
+        Timber.d("Location: ${it.latitude} , ${it.longitude}, :: $it")
+    }
+
+    MultiPermissionHandler(
+        permissions = permissions,
+        onGranted = {
+            requestLocationUpdate.startLocationUpdates(it.contains(Manifest.permission.ACCESS_FINE_LOCATION))
+        },
+    )
+
+    LifecycleResumeEffect(Lifecycle.Event.ON_RESUME) {
+        onPauseOrDispose {
+            requestLocationUpdate.stopLocationUpdates()
+        }
+    }
 }
 
 
@@ -136,8 +166,6 @@ fun MapWithMarkers(
 
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val green = uiState.selectedGround.find { it.poi == POI_NAME.GREEN }
 
     val draggableMarker = remember { MarkerState(uiState.dragMarkPos) }
     var sliderState by remember { mutableFloatStateOf(20f) }
