@@ -1,5 +1,6 @@
 package com.app.research.good_gps.model
 
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.annotations.SerializedName
 
 data class EventLocReceive(
@@ -40,7 +41,9 @@ data class Payload(
     @SerializedName("timestamp")
     val timestamp: String = "",
     @SerializedName("accuracy")
-    val accuracy: Int = 0,
+    val accuracy: Float = 0.0f,
     @SerializedName("speed")
-    val speed: Double = 0.0
-)
+    val speed: Float = 0.0f
+){
+    val latLng get() = LatLng(lat.toDouble(), lng.toDouble())
+}

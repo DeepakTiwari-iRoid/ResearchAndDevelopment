@@ -1,7 +1,5 @@
 package com.app.research.good_gps
 
-import MultiPermissionHandler
-import android.Manifest
 import android.annotation.SuppressLint
 import android.location.Location
 import androidx.compose.foundation.Image
@@ -58,12 +56,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.app.research.good_gps.model.POI_NAME
-import com.app.research.good_gps.utils.RequestLocationUpdate
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.pxToDp
@@ -71,10 +66,12 @@ import com.app.research.ui.theme.white
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.SphericalUtil
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
@@ -85,6 +82,7 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import timber.log.Timber
 import kotlin.math.cos
 import kotlin.random.Random
@@ -128,29 +126,18 @@ fun CoursesScreen(
     }
 
 
-    val permissions = listOf(
+    /*val permissions = listOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
 
-    val ctx = LocalContext.current
-
-    val requestLocationUpdate = RequestLocationUpdate(ctx) {
-        Timber.d("Location: ${it.latitude} , ${it.longitude}, :: $it")
-    }
-
     MultiPermissionHandler(
         permissions = permissions,
         onGranted = {
-            requestLocationUpdate.startLocationUpdates(it.contains(Manifest.permission.ACCESS_FINE_LOCATION))
+            Timber.d("Granted permissions: $it")
+            viewModel.requestLocationUpdate.startLocationUpdates(it.contains(Manifest.permission.ACCESS_FINE_LOCATION))
         },
-    )
-
-    LifecycleResumeEffect(Lifecycle.Event.ON_RESUME) {
-        onPauseOrDispose {
-            requestLocationUpdate.stopLocationUpdates()
-        }
-    }
+    )*/
 }
 
 
@@ -298,7 +285,7 @@ fun MapWithMarkers(
             }
 
             // Draw circle
-            com.google.maps.android.compose.Circle(
+            Circle(
                 center = draggableMarker.position,
                 radius = sliderState.toDouble(), // radius in meters
                 strokeWidth = 5f,
@@ -324,7 +311,7 @@ fun MapWithMarkers(
                 )
             }
 
-
+            //Green - Drag Marker
             Polyline(
                 color = Color.White,
                 points = listOf(
@@ -335,11 +322,63 @@ fun MapWithMarkers(
                 pattern = PolyLinePattern().setDashLength(20f).DOT_PATTERN
             )
 
+            //Draggable - Current Location
+
             Polyline(
                 color = Color.White,
                 points = listOf(draggableMarker.position, uiState.currLoc),
                 startCap = RoundCap(),
                 pattern = PolyLinePattern().setDashLength(5f).DOT_PATTERN
+            )
+
+            //User Location
+            MarkerComposable(
+                state = rememberUpdatedMarkerState(uiState.currLoc),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(
+                            color = Color.Blue,
+                            shape = CircleShape
+                        )
+                        .border(1.dp, Color.White, shape = CircleShape)
+                )
+            }
+
+            //Player Locations
+            uiState.playerLoc.forEach { er ->
+                MarkerComposable(
+                    state = MarkerState(er.payload.latLng),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(
+                                color = Color.Black,
+                                shape = CircleShape
+                            )
+                            .border(1.dp, Color.White, shape = CircleShape)
+                    )
+                }
+            }
+
+
+            val (p1, p2) = maxDistanceOnHull(uiState.hull) //Find the farthest points on the hull TODO: access it from VM
+
+
+            Polyline(
+                color = Color.LightGray,
+                points = listOf(p1, p2),
+                startCap = RoundCap(),
+                pattern = PolyLinePattern().setDashLength(50f).DASH_PATTERN
+            )
+
+
+            Polyline(
+                points = uiState.hull,
+                color = Color.Cyan,
+                jointType = JointType.ROUND,
             )
 
             MapEffect { map ->
@@ -379,6 +418,13 @@ fun MapWithMarkers(
                         )
                     }*/
                 }
+
+                /*map.addGroundOverlay(
+                    GroundOverlayOptions()
+                        .image(BitmapDescriptorFactory.fromBitmap(bitmap ?: return@MapEffect))
+                        .positionFromBounds(uiState.bounds)
+                        .zIndex(999f)
+                )*/
             }
         }
     }
