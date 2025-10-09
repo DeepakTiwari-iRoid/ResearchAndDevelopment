@@ -1,12 +1,14 @@
 package com.app.research.good_gps
 
 import android.annotation.SuppressLint
+import android.graphics.Point
 import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +50,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +62,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.app.research.good_gps.model.POI_NAME
+import com.app.research.good_gps.utils.cloudBitmapGenerator
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.pxToDp
@@ -182,10 +186,16 @@ fun MapWithMarkers(
     val whiteWidth = 0.5f
     val restWidth = 1f - (whiteWidth - 0.2f)
 
-    Box(
+
+
+    BoxWithConstraints(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+
+        val size = constraints
+        val maxWidth = size.maxWidth
+        val maxHeight = size.maxHeight
 
         CourseMatrix(
             dotF5 = {
@@ -263,6 +273,7 @@ fun MapWithMarkers(
                 mapLoaded = true
             }
         ) {
+
 
             uiState.selectedGround.forEach { latLng ->
                 MarkerComposable(
@@ -381,7 +392,8 @@ fun MapWithMarkers(
                 jointType = JointType.ROUND,
             )
 
-            MapEffect { map ->
+
+            MapEffect(mapLoaded, uiState.hull) { map ->
 
 
                 val markerDragListener = object : GoogleMap.OnMarkerDragListener {
@@ -419,15 +431,50 @@ fun MapWithMarkers(
                     }*/
                 }
 
-                /*map.addGroundOverlay(
-                    GroundOverlayOptions()
-                        .image(BitmapDescriptorFactory.fromBitmap(bitmap ?: return@MapEffect))
-                        .positionFromBounds(uiState.bounds)
-                        .zIndex(999f)
-                )*/
+                /* scope.launch {
+                     delay(5000L)
+
+                     val cloudBitmap = cloudBitmapGenerator(
+                         width = (maxWidth * restWidth).toInt(),
+                         height = maxHeight,
+                         points = uiState.hull.map {
+                             cameraPositionState.projection?.toScreenLocation(it) ?: Point(0, 0)
+                         }
+                     )
+
+                     cloudBitmap.let { bitmap ->
+                         map.addGroundOverlay(
+                             GroundOverlayOptions()
+                                 .image(BitmapDescriptorFactory.fromBitmap(bitmap))
+                                 .positionFromBounds(uiState.bounds)
+                                 .zIndex(999f)
+                         )
+                     }
+                 }*/
             }
         }
+
+        if (!mapLoaded) return@BoxWithConstraints
+        val cloudBitmap = cloudBitmapGenerator(
+            width = (maxWidth * restWidth).toInt(),
+            height = maxHeight,
+            points = uiState.hull.map {
+                cameraPositionState.projection?.toScreenLocation(it) ?: Point(0, 0)
+            },
+            blurRadius = 20f
+        )
+
+        Image(
+            bitmap = cloudBitmap.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .fillMaxWidth(restWidth)
+                .zIndex(0f)
+        )
     }
+
 
     if (mapLoaded)
         LaunchedEffect(uiState.hull) {
