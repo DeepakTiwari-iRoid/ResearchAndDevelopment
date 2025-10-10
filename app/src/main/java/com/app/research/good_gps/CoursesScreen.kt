@@ -102,13 +102,14 @@ fun CoursesScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    //Color(0xFFE4E4E6)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             Row(
                 modifier = Modifier
-                    .background(Color(0xFFE4E4E6))
+                    .background(white)
                     .statusBarsPadding()
                     .height(48.dp)
                     .fillMaxWidth()
@@ -461,7 +462,6 @@ fun MapWithMarkers(
             points = uiState.hull.map {
                 cameraPositionState.projection?.toScreenLocation(it) ?: Point(0, 0)
             },
-            blurRadius = 20f
         )
 
         Image(

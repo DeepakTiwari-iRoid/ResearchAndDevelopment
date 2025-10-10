@@ -14,6 +14,7 @@ val Pink40 = Color(0xFF7D5260)
 val neonNazar  = Color(0xFF59D6DF)
 val grey94 = Color(0xFF949B9C)
 val black25 = Color(0xFF252525)
+val black = Color(0xFF000000)
 val aliceBlue = Color(0xFFEFFBFC)
 
 val white = Color(0xFFFFFFFF)
