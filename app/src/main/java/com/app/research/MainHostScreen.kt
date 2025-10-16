@@ -33,6 +33,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.research.Screens.ChatCustomPaging
+import com.app.research.Screens.TensorFlow
 import com.app.research.data.Constants
 import com.app.research.deeplink.DeepLinkActivity
 import com.app.research.faceml.FaceMLActivity
@@ -126,6 +128,7 @@ fun Item(
 
 
 enum class Screens {
+    TensorFlow,
     ChatCustomPaging,
     ForGolfRND,
     SkaiRAndD,
@@ -142,6 +145,8 @@ fun navigateToScreen(
     screen: Screens,
 ) {
 
+    val bundle = Bundle()
+
     when (screen) {
         Screens.ForGolfRND -> intent(context, ForGolfActivity::class.java)
         Screens.FaceMl -> intent(context, FaceMLActivity::class.java)
@@ -156,10 +161,13 @@ fun navigateToScreen(
 
         Screens.VerticalHorizontalPagerXML -> intent(context, VHPagerActivity::class.java)
 
-        Screens.ChatCustomPaging -> {
-            val bundle = Bundle().apply {
-                putString(Constants.KEYS.START_DEST, Constants.ComposeHostScreens.CHAT_SCREEN)
-            }
+        ChatCustomPaging -> {
+            bundle.putString(Constants.KEYS.START_DEST, ChatCustomPaging.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+
+        TensorFlow -> {
+            bundle.putString(Constants.KEYS.START_DEST, TensorFlow.name)
             intent(context, ComposeHostActivity::class.java, bundle = bundle)
         }
 

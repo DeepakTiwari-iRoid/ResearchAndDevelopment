@@ -10,6 +10,8 @@ android {
     namespace = "com.app.research"
     compileSdk = 36
 
+    aaptOptions { noCompress("tflite") }
+
     defaultConfig {
         applicationId = "com.app.researchanddevelopment"
         minSdk = 26
@@ -41,12 +43,15 @@ android {
         buildConfig = true
         viewBinding = true
         dataBinding = true
+        mlModelBinding = true
     }
 
     composeCompiler {
         reportsDestination = layout.buildDirectory.dir("compose_compiler")
         //  stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
     }
+
+
 }
 
 dependencies {
@@ -69,10 +74,12 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.camera.core)
+    implementation(libs.camera.camera2)
     implementation(libs.play.services.vision.common)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.paging.compose.android)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -104,5 +111,15 @@ dependencies {
 
     //socket-io
     implementation(libs.socket.io)
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+
+    implementation(libs.play.services.location)
+    //TensorFlow Lite
+    implementation(libs.tensorflow.lite)
+//    implementation(libs.litert)
+    implementation(libs.tensorflow.lite.support)
+    implementation(libs.tensorflow.lite.metadata)
+    implementation(libs.tensorflow.lite.gpu)
+
+
 }

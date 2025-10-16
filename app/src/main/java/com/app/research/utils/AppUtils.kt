@@ -23,7 +23,7 @@ object AppUtils {
         bundle: Bundle? = null
     ) =
         Intent(context, activity).apply {
-            bundle?.let { putExtras(it) }
+            if (bundle != null) putExtras(bundle)
             if (shouldStartActivity) context.startActivity(this@apply)
         }
 

@@ -1,7 +1,6 @@
 package com.app.research.good_gps
 
 import android.annotation.SuppressLint
-import android.graphics.Point
 import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -50,7 +49,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -62,7 +60,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.app.research.good_gps.model.POI_NAME
-import com.app.research.good_gps.utils.cloudBitmapGenerator
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.pxToDp
@@ -70,7 +67,6 @@ import com.app.research.ui.theme.white
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.RoundCap
@@ -162,7 +158,6 @@ fun MapWithMarkers(
     val draggableMarker = remember { MarkerState(uiState.dragMarkPos) }
     var sliderState by remember { mutableFloatStateOf(20f) }
 
-
     val cameraPositionState = rememberCameraPositionState()
     println("Zoom: ${cameraPositionState.position.zoom}")
     var mapLoaded by remember { mutableStateOf(false) }
@@ -175,7 +170,7 @@ fun MapWithMarkers(
                 rotationGesturesEnabled = true,
                 tiltGesturesEnabled = false,
                 zoomGesturesEnabled = true,
-                zoomControlsEnabled = true
+                zoomControlsEnabled = false
             )
         )
     }
@@ -376,7 +371,7 @@ fun MapWithMarkers(
             }
 
 
-            val (p1, p2) = maxDistanceOnHull(uiState.hull) //Find the farthest points on the hull TODO: access it from VM
+            /*val (p1, p2) = maxDistanceOnHull(uiState.hull) //Find the farthest points on the hull TODO: access it from VM
 
 
             Polyline(
@@ -391,7 +386,7 @@ fun MapWithMarkers(
                 points = uiState.hull,
                 color = Color.Cyan,
                 jointType = JointType.ROUND,
-            )
+            )*/
 
 
             MapEffect(mapLoaded, uiState.hull) { map ->
@@ -431,31 +426,10 @@ fun MapWithMarkers(
                         )
                     }*/
                 }
-
-                /* scope.launch {
-                     delay(5000L)
-
-                     val cloudBitmap = cloudBitmapGenerator(
-                         width = (maxWidth * restWidth).toInt(),
-                         height = maxHeight,
-                         points = uiState.hull.map {
-                             cameraPositionState.projection?.toScreenLocation(it) ?: Point(0, 0)
-                         }
-                     )
-
-                     cloudBitmap.let { bitmap ->
-                         map.addGroundOverlay(
-                             GroundOverlayOptions()
-                                 .image(BitmapDescriptorFactory.fromBitmap(bitmap))
-                                 .positionFromBounds(uiState.bounds)
-                                 .zIndex(999f)
-                         )
-                     }
-                 }*/
             }
         }
 
-        if (!mapLoaded) return@BoxWithConstraints
+        /*if (!mapLoaded) return@BoxWithConstraints
         val cloudBitmap = cloudBitmapGenerator(
             width = (maxWidth * restWidth).toInt(),
             height = maxHeight,
@@ -472,7 +446,7 @@ fun MapWithMarkers(
                 .fillMaxHeight()
                 .fillMaxWidth(restWidth)
                 .zIndex(0f)
-        )
+        )*/
     }
 
 
