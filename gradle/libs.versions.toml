@@ -22,6 +22,7 @@ constraintlayout = "2.2.1"
 navigationFragmentKtx = "2.9.3"
 navigationUiKtx = "2.9.3"
 mlVision = "16.1.7"
+faceMeshDetection = "16.0.0-beta3"
 cameraCore = "1.4.2"
 playServicesLocation = "21.3.0"
 playServicesMaps = "19.2.0"
@@ -71,6 +72,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
 mlkit-facedetection = { group = "com.google.mlkit", name = "face-detection", version.ref = "mlVision" }
+mlkit-face-mesh-detection = { group = "com.google.mlkit", name = "face-mesh-detection", version.ref = "faceMeshDetection" }
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
 camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraCore" }
 camera-vision = { group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "cameraCore" }

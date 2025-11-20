@@ -9,6 +9,7 @@ import com.app.research.good_gps.model.LOCATION
 import com.app.research.good_gps.model.POI_NAME
 import com.app.research.good_gps.model.Payload
 import com.app.research.good_gps.model.User
+import com.app.research.good_gps.utils.RequestLocationUpdate
 import com.app.research.good_gps.utils.SocketHelper
 import com.app.research.utils.AppUtils.fromJsonString
 import com.app.research.utils.AppUtils.toJsonString
@@ -34,10 +35,10 @@ class ForeGolfVM : ViewModel() {
 
     private val mapPlayerLoc = HashMap<Int, EventLocReceive>()
 
-    /* val requestLocationUpdate = RequestLocationUpdate { loc ->
+     val requestLocationUpdate = RequestLocationUpdate { loc ->
          Timber.d("Location: ${loc.latitude} , ${loc.longitude}, :: $loc")
          event(ForeGolfEvent.UpdateGPSLoc(loc))
-     }*/
+     }
 
     private val socketHelper = SocketHelper(
         endPoint = SocketHelper.END_POINT,

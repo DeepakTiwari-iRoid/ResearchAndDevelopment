@@ -11,10 +11,15 @@ const val lunch = "Lunch"
 const val internetIssue = "Internet Issue"
 
 val tasks: List<Task> = listOf(
-    Task(1020, "No  Work", "am"),
-    Task(1111, "ForeGolf", "am"),
+    Task(1039, "Golpic Notification", "am"),
+    Task(1050, "Daily Task Update", "am"),
+    Task(1135, "Weekly Team Meeting", "am"),
+    Task(1156, "Notification Impl", "am"),
+    Task(1230, "Login/Logout Issue resolving", ),
     Task(135, "Lunch", exclude = true),
-    Task(158, "ForeGolf"),
+    Task(205, "Apple Login"),
+    Task(320, "Tradesnap Code Reviewing"),
+    Task(402, "VGS Tokenization"),
     Task(getCurrentTime().first, "TimeOver", amPM = getCurrentTime().second.lowercase()),
 )
 

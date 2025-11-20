@@ -1,6 +1,9 @@
 package com.app.research.good_gps
 
+import MultiPermissionHandler
+import android.Manifest
 import android.annotation.SuppressLint
+import android.graphics.Point
 import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,6 +52,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -60,6 +64,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.app.research.good_gps.model.POI_NAME
+import com.app.research.good_gps.utils.cloudBitmapGenerator
 import com.app.research.singlescreen_r_d.skaifitness.HStack
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.pxToDp
@@ -127,7 +132,7 @@ fun CoursesScreen(
     }
 
 
-    /*val permissions = listOf(
+    val permissions = listOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
@@ -138,7 +143,7 @@ fun CoursesScreen(
             Timber.d("Granted permissions: $it")
             viewModel.requestLocationUpdate.startLocationUpdates(it.contains(Manifest.permission.ACCESS_FINE_LOCATION))
         },
-    )*/
+    )
 }
 
 
@@ -429,7 +434,7 @@ fun MapWithMarkers(
             }
         }
 
-        /*if (!mapLoaded) return@BoxWithConstraints
+        if (!mapLoaded) return@BoxWithConstraints
         val cloudBitmap = cloudBitmapGenerator(
             width = (maxWidth * restWidth).toInt(),
             height = maxHeight,
@@ -446,7 +451,7 @@ fun MapWithMarkers(
                 .fillMaxHeight()
                 .fillMaxWidth(restWidth)
                 .zIndex(0f)
-        )*/
+        )
     }
 
 

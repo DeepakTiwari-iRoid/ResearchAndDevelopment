@@ -95,6 +95,8 @@ dependencies {
 
     //mlkit-face
     implementation(libs.mlkit.facedetection)
+    implementation(libs.mlkit.face.mesh.detection)
+
     implementation(libs.guava)
     implementation(libs.camera.extensions)
     implementation(libs.camera.lifecycle)
