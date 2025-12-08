@@ -114,14 +114,19 @@ dependencies {
     //socket-io
     implementation(libs.socket.io)
 
-
     implementation(libs.play.services.location)
     //TensorFlow Lite
-    implementation(libs.tensorflow.lite)
-//    implementation(libs.litert)
+    implementation(libs.tf.lite)
+    implementation(libs.tf.task.vision)
+    //implementation(libs.litert)
     implementation(libs.tensorflow.lite.support)
     implementation(libs.tensorflow.lite.metadata)
     implementation(libs.tensorflow.lite.gpu)
+    //Google Credential Manager
+    implementation(libs.google.credentials)
+    implementation(libs.google.credentials.auth)
+    implementation(libs.google.credentials.id)
 
+    implementation(libs.cookiebar2)
 
 }

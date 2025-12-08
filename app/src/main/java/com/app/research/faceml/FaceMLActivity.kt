@@ -8,6 +8,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.app.research.R
 import com.app.research.databinding.ActivityFaceMlBinding
+import org.tensorflow.lite.task.vision.detector.ObjectDetector
 
 class FaceMLActivity : AppCompatActivity() {
 
@@ -25,7 +26,10 @@ class FaceMLActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_face_ml)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
-
+        val optionsBuilder =
+            ObjectDetector.ObjectDetectorOptions.builder()
+                .setScoreThreshold(2f)
+                .setMaxResults(1)
     }
 
     override fun onSupportNavigateUp(): Boolean {

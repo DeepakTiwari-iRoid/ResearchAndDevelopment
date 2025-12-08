@@ -57,7 +57,6 @@ class FaceMeshGraphic(
         canvas.drawRect(rect, boxPaint)
 
 
-
         // Draw face mesh
         val points =
             if (useCase == USE_CASE_CONTOUR_ONLY) getContourPoints(faceMesh) else faceMesh.allPoints

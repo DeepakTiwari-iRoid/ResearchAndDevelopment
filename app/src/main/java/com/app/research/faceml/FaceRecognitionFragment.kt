@@ -2,6 +2,7 @@ package com.app.research.faceml
 
 import android.Manifest
 import android.content.ContentValues
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Build
@@ -24,7 +25,6 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.app.research.R
 import com.app.research.databinding.FragmentFaceRecognitionBinding
 import com.app.research.faceml.utils.MeshImageAnalyzer
@@ -60,7 +60,7 @@ class FaceRecognitionFragment : Fragment() {
     private var _binding: FragmentFaceRecognitionBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var context: FragmentActivity
+    private lateinit var context: Context
 
     val defaultDetector = FaceMeshDetection.getClient(
         FaceMeshDetectorOptions.Builder()
@@ -106,7 +106,7 @@ class FaceRecognitionFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFaceRecognitionBinding.inflate(inflater, container, false)
-        context = requireActivity()
+        context = requireContext()
         initial()
         return binding.root
     }
@@ -238,7 +238,7 @@ class FaceRecognitionFragment : Fragment() {
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
-            this.requireActivity(),
+            context,
             it
         ) == PackageManager.PERMISSION_GRANTED
     }
@@ -249,15 +249,21 @@ class FaceRecognitionFragment : Fragment() {
                 progress >= 1f -> {
                     binding.progressText.text = getString(R.string.capturing_selfie_message)
                 }
+
                 progress <= 0f -> {
                     binding.progressText.text = getString(R.string.hold_steady_message)
                 }
+
                 else -> {
                     val secondsRemaining =
                         (STABILITY_THRESHOLD_MS / 1000f) * (1 - progress)
                     binding.progressText.text = getString(
                         R.string.hold_steady_countdown_message,
-                        String.format(Locale.getDefault(), "%.1f", secondsRemaining.coerceAtLeast(0f))
+                        String.format(
+                            Locale.getDefault(),
+                            "%.1f",
+                            secondsRemaining.coerceAtLeast(0f)
+                        )
                     )
                 }
             }
@@ -271,15 +277,10 @@ class FaceRecognitionFragment : Fragment() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        meshAnalyzer = null
-        cameraExecutor.shutdown()
-    }
-
-
     override fun onDestroyView() {
         super.onDestroyView()
+        meshAnalyzer = null
+        cameraExecutor.shutdown()
         _binding = null
     }
 }

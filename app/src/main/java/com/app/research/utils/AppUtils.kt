@@ -1,11 +1,14 @@
 package com.app.research.utils
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import com.app.research.R
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import org.aviran.cookiebar2.CookieBar
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -91,6 +94,7 @@ object AppUtils {
         return Gson().toJson(this)
     }
 
+
     inline fun <reified T> String.fromJsonString(): T? {
         return try {
             val type = object : TypeToken<T>() {}.type
@@ -99,6 +103,30 @@ object AppUtils {
             e.printStackTrace()
             null
         }
+    }
+
+    fun showInfoMessage(activityContext: Context, message: String) {
+        val context = activityContext as? Activity ?: return
+        CookieBar.build(context).setTitle("GoalPic").setMessage(message)
+            .setBackgroundColor(R.color.yellow).setCookiePosition(CookieBar.TOP).show()
+    }
+
+    fun showErrorMessage(activityContext: Context, message: String) {
+        val context = activityContext as? Activity ?: return
+        CookieBar.build(context).setTitle("GoalPic").setMessage(message)
+            .setBackgroundColor(R.color.error_colors).setCookiePosition(CookieBar.TOP).show()
+    }
+
+    fun showWaringMessage(activityContext: Context, message: String) {
+        val context = activityContext as? Activity ?: return
+        CookieBar.build(context).setTitle("GoalPic").setMessage(message)
+            .setBackgroundColor(R.color.warning_colors).setCookiePosition(CookieBar.TOP).show()
+    }
+
+    fun showSuccessMessage(activityContext: Context, message: String) {
+        val context = activityContext as? Activity ?: return
+        CookieBar.build(context).setTitle("GoalPic").setMessage(message)
+            .setBackgroundColor(R.color.success_colors).setCookiePosition(CookieBar.TOP).show()
     }
 
 }
