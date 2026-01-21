@@ -114,19 +114,21 @@ object AppUtils {
     fun showErrorMessage(activityContext: Context, message: String) {
         val context = activityContext as? Activity ?: return
         CookieBar.build(context).setTitle("GoalPic").setMessage(message)
-            .setBackgroundColor(R.color.error_colors).setCookiePosition(CookieBar.TOP).show()
+            .setBackgroundColor(R.color.red).setCookiePosition(CookieBar.TOP).show()
     }
 
     fun showWaringMessage(activityContext: Context, message: String) {
         val context = activityContext as? Activity ?: return
         CookieBar.build(context).setTitle("GoalPic").setMessage(message)
-            .setBackgroundColor(R.color.warning_colors).setCookiePosition(CookieBar.TOP).show()
+            .setBackgroundColor(R.color.yellow).setCookiePosition(CookieBar.TOP).show()
     }
 
     fun showSuccessMessage(activityContext: Context, message: String) {
         val context = activityContext as? Activity ?: return
         CookieBar.build(context).setTitle("GoalPic").setMessage(message)
-            .setBackgroundColor(R.color.success_colors).setCookiePosition(CookieBar.TOP).show()
+            .setBackgroundColor(R.color.green).setCookiePosition(CookieBar.TOP).show()
     }
+
+
 
 }

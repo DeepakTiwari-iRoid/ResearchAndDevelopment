@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.research.Screens.CamPointsMappingOverlay
 import com.app.research.Screens.ChatCustomPaging
 import com.app.research.Screens.TensorFlow
 import com.app.research.data.Constants
@@ -137,6 +138,7 @@ enum class Screens {
     FaceMl,
     ScreenSlidTransitionXML,
     VerticalHorizontalPagerXML,
+    CamPointsMappingOverlay
 }
 
 
@@ -168,6 +170,11 @@ fun navigateToScreen(
 
         TensorFlow -> {
             bundle.putString(Constants.KEYS.START_DEST, TensorFlow.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+
+        CamPointsMappingOverlay -> {
+            bundle.putString(Constants.KEYS.START_DEST, CamPointsMappingOverlay.name)
             intent(context, ComposeHostActivity::class.java, bundle = bundle)
         }
 

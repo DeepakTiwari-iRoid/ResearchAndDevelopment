@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.app.research.camoverlaypointsmapping.CamPointsMappingScreen
 import com.app.research.chatpaging.ChatScreen
 import com.app.research.data.Constants
 import com.app.research.tensorflow.TensorFlow
@@ -51,6 +52,10 @@ fun ComposeHost(
 
         composable(Screens.TensorFlow.name) {
             TensorFlow()
+        }
+
+        composable(route = Screens.CamPointsMappingOverlay.name) {
+            CamPointsMappingScreen()
         }
     }
 }
