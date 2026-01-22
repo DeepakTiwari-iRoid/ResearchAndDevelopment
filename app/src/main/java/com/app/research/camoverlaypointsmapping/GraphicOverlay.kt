@@ -16,7 +16,7 @@ import kotlin.math.min
 
 /**
  * GraphicOverlay - A canvas overlay for drawing graphics with coordinate transformation
- * 
+ *
  * This overlay handles coordinate mapping between:
  * - Image coordinates (e.g., from camera/ML model)
  * - Screen coordinates (where to draw on screen)
@@ -33,7 +33,7 @@ fun GraphicOverlay(
     Canvas(modifier = modifier.fillMaxSize()) {
         val canvasWidth = size.width
         val canvasHeight = size.height
-        
+
         // Calculate scale factors for coordinate transformation
         val scaleX = if (imageWidth > 0) canvasWidth / imageWidth else 1f
         val scaleY = if (imageHeight > 0) canvasHeight / imageHeight else 1f
@@ -64,7 +64,7 @@ sealed class Graphic {
         canvasHeight: Float,
         isImageFlipped: Boolean
     )
-    
+
     /**
      * Transforms a point from image coordinates to screen coordinates
      */
@@ -80,7 +80,7 @@ sealed class Graphic {
             x * scaleX
         }
     }
-    
+
     protected fun transformY(y: Float, scaleY: Float): Float {
         return y * scaleY
     }
@@ -107,7 +107,7 @@ data class PointGraphic(
         with(drawScope) {
             val screenX = transformX(x, scaleX, canvasWidth, isImageFlipped)
             val screenY = transformY(y, scaleY)
-            
+
             // Draw circle
             drawCircle(
                 color = color,
@@ -115,14 +115,14 @@ data class PointGraphic(
                 center = Offset(screenX, screenY),
                 style = Stroke(width = 3.dp.toPx())
             )
-            
+
             // Draw filled center
             drawCircle(
                 color = color,
                 radius = radius / 2,
                 center = Offset(screenX, screenY)
             )
-            
+
             // Draw label if provided
             label?.let {
                 drawContext.canvas.nativeCanvas.apply {
@@ -162,7 +162,7 @@ data class LineGraphic(
             val screenStartY = transformY(startY, scaleY)
             val screenEndX = transformX(endX, scaleX, canvasWidth, isImageFlipped)
             val screenEndY = transformY(endY, scaleY)
-            
+
             drawLine(
                 color = color,
                 start = Offset(screenStartX, screenStartY),
@@ -198,18 +198,18 @@ data class RectGraphic(
             val screenTop = transformY(top, scaleY)
             val screenRight = transformX(right, scaleX, canvasWidth, isImageFlipped)
             val screenBottom = transformY(bottom, scaleY)
-            
+
             // Ensure correct ordering (left < right)
             val actualLeft = min(screenLeft, screenRight)
             val actualRight = max(screenLeft, screenRight)
-            
+
             drawRect(
                 color = color,
                 topLeft = Offset(actualLeft, screenTop),
                 size = Size(actualRight - actualLeft, screenBottom - screenTop),
                 style = Stroke(width = strokeWidth)
             )
-            
+
             // Draw label if provided
             label?.let {
                 drawContext.canvas.nativeCanvas.apply {
@@ -244,7 +244,7 @@ data class PolygonGraphic(
     ) {
         with(drawScope) {
             if (points.size < 2) return
-            
+
             // Transform all points
             val transformedPoints = points.map { (x, y) ->
                 Offset(
@@ -252,7 +252,7 @@ data class PolygonGraphic(
                     transformY(y, scaleY)
                 )
             }
-            
+
             // Draw lines connecting points
             for (i in 0 until transformedPoints.size - 1) {
                 drawLine(
@@ -262,7 +262,7 @@ data class PolygonGraphic(
                     strokeWidth = strokeWidth
                 )
             }
-            
+
             // Close the polygon if requested
             if (isClosed && transformedPoints.size > 2) {
                 drawLine(
@@ -297,7 +297,7 @@ data class TextGraphic(
         with(drawScope) {
             val screenX = transformX(x, scaleX, canvasWidth, isImageFlipped)
             val screenY = transformY(y, scaleY)
-            
+
             drawContext.canvas.nativeCanvas.apply {
                 val paint = android.graphics.Paint().apply {
                     this.textSize = textSize

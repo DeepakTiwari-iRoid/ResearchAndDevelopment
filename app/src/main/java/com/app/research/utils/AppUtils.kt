@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.app.research.R
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
@@ -129,6 +131,14 @@ object AppUtils {
             .setBackgroundColor(R.color.green).setCookiePosition(CookieBar.TOP).show()
     }
 
+    fun getSystemBarHeights(ctx: Context): Pair<Int, Int> {
+        val activity = ctx as? Activity ?: return 0 to 0
+        val insets = ViewCompat.getRootWindowInsets(activity.window.decorView) ?: return 0 to 0
 
+        val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+        val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+
+        return statusBarHeight to navBarHeight
+    }
 
 }
