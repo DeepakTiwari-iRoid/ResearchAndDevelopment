@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleDebug)",
+      "Read(//private/tmp/**)",
+      "Bash(cp \"/Users/imac/.gradle/caches/modules-2/files-2.1/io.github.sceneview/arsceneview/2.2.1/4f6f9545539e1bce10916db7ae24939116004546/arsceneview-2.2.1.aar\" arsceneview.zip)",
+      "Bash(unzip -o arsceneview.zip -d arsceneview_extract)",
+      "Bash(jar tf:*)",
+      "Bash(grep -v '\\\\$')",
+      "Bash(cp \"/Users/imac/.gradle/caches/modules-2/files-2.1/io.github.sceneview/sceneview/2.2.1/bb0e57f05ef34940314232ddc8f8f50e8d8f9e7f/sceneview-2.2.1.aar\" /tmp/sceneview.zip)",
+      "Bash(unzip -o sceneview.zip -d sceneview_extract)",
+      "Bash(javap -public arsceneview_extract/classes.jar:io/github/sceneview/ar/ARSceneView.class)",
+      "Bash(javap -classpath arsceneview_extract/classes.jar io.github.sceneview.ar.ARSceneView)",
+      "Bash(javap -classpath sceneview_extract/classes.jar io.github.sceneview.SceneView)",
+      "Bash(javap -classpath sceneview_extract/classes.jar io.github.sceneview.node.CubeNode)",
+      "Bash(javap -classpath arsceneview_extract/classes.jar io.github.sceneview.ar.node.AnchorNode)",
+      "Bash(javap -classpath sceneview_extract/classes.jar io.github.sceneview.loaders.MaterialLoader)",
+      "Bash(javap -classpath sceneview_extract/classes.jar io.github.sceneview.node.Node)",
+      "Bash(javap -classpath arsceneview_extract/classes.jar io.github.sceneview.ar.arcore.ARSession)",
+      "Bash(javap -classpath sceneview_extract/classes.jar -p io.github.sceneview.loaders.MaterialLoader)",
+      "Bash(grep 'hitTestAR$default')",
+      "Bash(javap -c -classpath arsceneview_extract/classes.jar io.github.sceneview.ar.ARSceneView)",
+      "Bash(grep -A 5 'hitTestAR$default')",
+      "Bash(unzip -p arsceneview_extract/classes.jar META-INF/arsceneview.kotlin_module)",
+      "Bash(unzip -p \"/Users/imac/.gradle/caches/modules-2/files-2.1/io.github.sceneview/arsceneview/2.2.1/38e530e0d00160c8131dfcf9bdd55a197001c364/arsceneview-2.2.1-sources.jar\" io/github/sceneview/ar/ARSceneView.kt)",
+      "Bash(unzip -p \"/Users/imac/.gradle/caches/modules-2/files-2.1/io.github.sceneview/sceneview/2.2.1/9a8da00a71b87661b4b3d894f058f3770912fdb2/sceneview-2.2.1-sources.jar\" io/github/sceneview/SceneView.kt)",
+      "Bash(./gradlew compileDebugKotlin)",
+      "Bash(./gradlew :app:compileDebugKotlin)"
+    ]
+  }
+}

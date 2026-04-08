@@ -55,8 +55,13 @@ class SocketHelper(
     }
 
     companion object {
+        /** Socket event name for broadcasting/receiving real-time user location updates. */
         const val UPDATE_USER_LOC = "update_user_location"
+
+        /** Socket server endpoint URL. */
         const val END_POINT = "http://157.245.106.111:3322"
+
+        /** JWT auth token passed as a query param during socket connection handshake. */
         const val TOKEN =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJkZWVwYWtAeW9wbWFpbC5jb20iLCJuYW1lIjoiRGVlcGFrIiwiaWF0IjoxNzU5ODE1NTAwLCJleHAiOjE3NjA0MjAzMDB9._cq-JHeDuwnt-MlmSUSmLHu7GejVzy5ly34wJi9-lJk"
     }

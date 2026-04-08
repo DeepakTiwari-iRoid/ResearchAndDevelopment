@@ -44,9 +44,13 @@ gsonConverter = "3.0.0"
 guava = "33.5.0-android"
 timber = "5.0.1"
 socketIo = "0.6.0"
+socketIoClient = "2.1.0"
 cookiebar2 = "1.1.5"
 accompanistPermissions = "0.37.3"
 healthConnect = "1.1.0"
+webrtcSdk = "144.7559.01"
+arcore = "1.44.0"
+arsceneview = "2.2.1"
 
 # Google Credentials
 credentials = "1.5.0"
@@ -130,6 +134,7 @@ converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 socket-io = { module = "dev.icerock.moko:socket-io", version.ref = "socketIo" }
+socket-io-client = { module = "io.socket:socket.io-client", version.ref = "socketIoClient" }
 cookiebar2 = { module = "org.aviran.cookiebar2:cookiebar2", version.ref = "cookiebar2" }
 androidx-accompanist-permission = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
 
@@ -142,6 +147,9 @@ google-credentials-id = { module = "com.google.android.libraries.identity.google
 androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 opencv = { module = "com.quickbirdstudios:opencv", version.ref = "opencv" }
 health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
+webrtc-android = { module = "io.github.webrtc-sdk:android", version.ref = "webrtcSdk" }
+arcore = { module = "com.google.ar:core", version.ref = "arcore" }
+arsceneview = { module = "io.github.sceneview:arsceneview", version.ref = "arsceneview" }
 
 # Test
 junit = { module = "junit:junit", version.ref = "junit" }

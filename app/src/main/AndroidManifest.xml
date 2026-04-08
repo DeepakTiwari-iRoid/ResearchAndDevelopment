@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.camera.any"/>
+    <uses-feature android:name="android.hardware.camera.ar" android:required="false"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
@@ -10,6 +11,7 @@
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
     <uses-permission android:name="android.permission.health.READ_STEPS" /> <!-- declare Health Connect visibility -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
     
@@ -109,6 +111,10 @@
             android:theme="@style/Theme.ResearchAndDevelopment">
         </activity>
 
+
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="optional" />
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

@@ -17,6 +17,10 @@ import com.app.research.camoverlaypointsmapping.CamPointsMappingScreen
 import com.app.research.chatpaging.ChatScreen
 import com.app.research.data.Constants
 import com.app.research.tensorflow.TensorFlow
+import com.app.research.arsample.ARSampleScreen
+import com.app.research.artagging.ui.ArTaggingScreen
+import com.app.research.skyview.ui.SkyViewScreen
+import com.app.research.webrtcaudiocalling.presentation.CallScreen
 import org.opencv.android.OpenCVLoader
 import timber.log.Timber
 
@@ -72,6 +76,22 @@ fun ComposeHost(
 
         composable(route = Screens.CamPointsMappingOverlay.name) {
             CamPointsMappingScreen()
+        }
+
+        composable(route = Screens.WebRTCAudioCalling.name) {
+            CallScreen()
+        }
+
+        composable(route = Screens.ARSample360.name) {
+            ARSampleScreen()
+        }
+
+        composable(route = Screens.SkyView.name) {
+            SkyViewScreen()
+        }
+
+        composable(route = Screens.ArTagging.name) {
+            ArTaggingScreen()
         }
     }
 }

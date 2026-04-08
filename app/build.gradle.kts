@@ -129,6 +129,7 @@ android {
         implementation(libs.guava)
         implementation(libs.timber)
         implementation(libs.socket.io)
+        implementation(libs.socket.io.client)
         implementation(libs.cookiebar2)
 
 
@@ -143,6 +144,12 @@ android {
         implementation(libs.androidx.accompanist.permission)
         implementation(libs.health.connect)
 
+        // WebRTC (signaling uses io.socket:socket.io-client — same options as your other app)
+        implementation(libs.webrtc.android)
+
+        // ARCore + SceneView
+        implementation(libs.arcore)
+        implementation(libs.arsceneview)
 
         // Tests
         testImplementation(libs.junit)

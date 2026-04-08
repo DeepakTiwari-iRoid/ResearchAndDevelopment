@@ -34,6 +34,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.research.Screens.CamPointsMappingOverlay
+import com.app.research.Screens.ARSample360
+import com.app.research.Screens.ArTagging
+import com.app.research.Screens.SkyView
+import com.app.research.Screens.WebRTCAudioCalling
 import com.app.research.Screens.ChatCustomPaging
 import com.app.research.Screens.TensorFlow
 import com.app.research.data.Constants
@@ -138,7 +142,11 @@ enum class Screens {
     FaceMl,
     ScreenSlidTransitionXML,
     VerticalHorizontalPagerXML,
-    CamPointsMappingOverlay
+    CamPointsMappingOverlay,
+    WebRTCAudioCalling,
+    ARSample360,
+    SkyView,
+    ArTagging
 }
 
 
@@ -175,6 +183,26 @@ fun navigateToScreen(
 
         CamPointsMappingOverlay -> {
             bundle.putString(Constants.KEYS.START_DEST, CamPointsMappingOverlay.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+
+        WebRTCAudioCalling -> {
+            bundle.putString(Constants.KEYS.START_DEST, WebRTCAudioCalling.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+
+        ARSample360 -> {
+            bundle.putString(Constants.KEYS.START_DEST, ARSample360.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+
+        SkyView -> {
+            bundle.putString(Constants.KEYS.START_DEST, SkyView.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+
+        ArTagging -> {
+            bundle.putString(Constants.KEYS.START_DEST, ArTagging.name)
             intent(context, ComposeHostActivity::class.java, bundle = bundle)
         }
 
