@@ -25,7 +25,12 @@
       "Bash(unzip -p \"/Users/imac/.gradle/caches/modules-2/files-2.1/io.github.sceneview/arsceneview/2.2.1/38e530e0d00160c8131dfcf9bdd55a197001c364/arsceneview-2.2.1-sources.jar\" io/github/sceneview/ar/ARSceneView.kt)",
       "Bash(unzip -p \"/Users/imac/.gradle/caches/modules-2/files-2.1/io.github.sceneview/sceneview/2.2.1/9a8da00a71b87661b4b3d894f058f3770912fdb2/sceneview-2.2.1-sources.jar\" io/github/sceneview/SceneView.kt)",
       "Bash(./gradlew compileDebugKotlin)",
-      "Bash(./gradlew :app:compileDebugKotlin)"
+      "Bash(./gradlew :app:compileDebugKotlin)",
+      "Bash(ls /tmp/h3build/h3/src/h3lib/lib/*.c)",
+      "Bash(ls /tmp/h3build/h3/src/h3lib/include/h3api.h*)",
+      "Bash(mkdir -p /tmp/h3build/jni-gen)",
+      "Bash(javac -h /tmp/h3build/jni-gen com/uber/h3core/NativeMethods.java)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

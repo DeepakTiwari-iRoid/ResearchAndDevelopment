@@ -36,6 +36,11 @@ android {
             // Keep the first occurrence of the file to resolve the duplicate
             pickFirsts.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
         }
+        jniLibs {
+            // Prefer our patched libh3-java.so from src/main/jniLibs over the
+            // broken copy shipped by com.uber:h3-android (missing libm.so in NEEDED).
+            pickFirsts.add("**/libh3-java.so")
+        }
     }
 
 
@@ -58,7 +63,6 @@ android {
         buildConfig = true
         mlModelBinding = true
     }
-
 
     dependencies {
 
@@ -150,6 +154,7 @@ android {
         // ARCore + SceneView
         implementation(libs.arcore)
         implementation(libs.arsceneview)
+        implementation("com.uber:h3-android:4.4.0")
 
         // Tests
         testImplementation(libs.junit)

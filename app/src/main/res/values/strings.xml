@@ -58,4 +58,8 @@
     <string name="capturing_selfie_message">Capturing selfie…</string>
     <string name="hold_steady_message">Hold steady for 5 seconds</string>
     <string name="hold_steady_countdown_message">Hold steady %1$ss</string>
+    <plurals name="tag_count_nearby">
+        <item quantity="one">1 tag nearby</item>
+        <item quantity="other">%d tags nearby</item>
+    </plurals>
 </resources>
