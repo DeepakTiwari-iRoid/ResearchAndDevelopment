@@ -16,11 +16,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-data class GpsLocation(
-    val latitude: Double,
-    val longitude: Double,
-    val accuracy: Float = 0f
-)
 
 object GeoUtils {
 
@@ -53,7 +48,7 @@ class LocationProvider(context: Context) {
     private val fusedClient = LocationServices.getFusedLocationProviderClient(context)
 
     @SuppressLint("MissingPermission")
-    fun observeLocation(): Flow<GpsLocation> = callbackFlow {
+    fun observeLocation(): Flow<Location> = callbackFlow {
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000L)
             .setMinUpdateIntervalMillis(1500L)
             .build()
@@ -61,13 +56,7 @@ class LocationProvider(context: Context) {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { loc ->
-                    trySend(
-                        GpsLocation(
-                            latitude = loc.latitude,
-                            longitude = loc.longitude,
-                            accuracy = loc.accuracy
-                        )
-                    )
+                    trySend(loc)
                 }
             }
         }
@@ -75,9 +64,9 @@ class LocationProvider(context: Context) {
         fusedClient.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
 
         // Also try to get last known location immediately
-        fusedClient.lastLocation.addOnSuccessListener { loc: Location? ->
-            loc?.let {
-                trySend(GpsLocation(it.latitude, it.longitude, it.accuracy))
+        fusedClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let { loc ->
+                trySend(loc)
             }
         }
 

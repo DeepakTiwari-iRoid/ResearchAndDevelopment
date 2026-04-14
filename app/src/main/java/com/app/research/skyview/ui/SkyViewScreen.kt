@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -44,7 +43,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.app.research.data.TempDataSource
+import com.app.research.skyview.CreateTagDialogState
+import com.app.research.skyview.SkyViewEvent
+import com.app.research.skyview.SkyViewUiState
 import com.app.research.skyview.SkyViewViewModel
+import com.app.research.ui.isPreviewMode
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlin.math.roundToInt
@@ -62,7 +66,11 @@ fun SkyViewScreen(
     )
 
     if (permissionsState.allPermissionsGranted) {
-        SkyViewContent(viewModel = viewModel)
+        val uiState by viewModel.uiState.collectAsState()
+        SkyViewContent(
+            uiState = uiState,
+            onEvent = viewModel::onEvent
+        )
     } else {
         PermissionRequest(
             onRequestPermissions = { permissionsState.launchMultiplePermissionRequest() }
@@ -97,50 +105,61 @@ private fun PermissionRequest(onRequestPermissions: () -> Unit) {
 }
 
 @Composable
-private fun SkyViewContent(viewModel: SkyViewViewModel) {
+private fun SkyViewContent(
+    uiState: SkyViewUiState,
+    onEvent: (SkyViewEvent) -> Unit
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val orientation by viewModel.orientation.collectAsState()
-    val location by viewModel.location.collectAsState()
-    val tagPositions by viewModel.nearbyTagPositions.collectAsState()
-    val showDialog by viewModel.showCreateDialog.collectAsState()
+    val orientation = uiState.orientation
+    val location = uiState.location
+    val tagPositions = uiState.tagPositions
 
     DisposableEffect(Unit) {
-        viewModel.startSensors()
+        onEvent(SkyViewEvent.StartSensors)
         onDispose { }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
 
-        // CameraX Preview
-        AndroidView(
-            factory = { ctx ->
-                val previewView = PreviewView(ctx).apply {
-                    scaleType = PreviewView.ScaleType.FILL_CENTER
-                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                }
+        if (!isPreviewMode) {
 
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
-                    val preview = Preview.Builder().build().also {
-                        it.surfaceProvider = previewView.surfaceProvider
+            // CameraX Preview
+            AndroidView(
+                factory = { ctx ->
+                    val previewView = PreviewView(ctx).apply {
+                        scaleType = PreviewView.ScaleType.FILL_CENTER
+                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     }
-                    try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            CameraSelector.DEFAULT_BACK_CAMERA,
-                            preview
-                        )
-                    } catch (_: Exception) { }
-                }, androidx.core.content.ContextCompat.getMainExecutor(ctx))
 
-                previewView
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+                    val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                    cameraProviderFuture.addListener({
+                        val cameraProvider = cameraProviderFuture.get()
+                        val preview = Preview.Builder().build().also {
+                            it.surfaceProvider = previewView.surfaceProvider
+                        }
+                        try {
+                            cameraProvider.unbindAll()
+                            cameraProvider.bindToLifecycle(
+                                lifecycleOwner,
+                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview
+                            )
+                        } catch (_: Exception) {
+                        }
+                    }, androidx.core.content.ContextCompat.getMainExecutor(context))
+
+                    previewView
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
 
         // AR Overlay — tags, crosshair, arrows
         AROverlay(
@@ -156,7 +175,7 @@ private fun SkyViewContent(viewModel: SkyViewViewModel) {
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 ) {
-                    viewModel.onScreenTap()
+                    onEvent(SkyViewEvent.ScreenTapped)
                 }
         )
 
@@ -166,7 +185,6 @@ private fun SkyViewContent(viewModel: SkyViewViewModel) {
             pitch = orientation.pitch,
             lat = location?.latitude,
             lon = location?.longitude,
-            tagCount = tagPositions.size,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
@@ -189,10 +207,10 @@ private fun SkyViewContent(viewModel: SkyViewViewModel) {
     }
 
     // Create tag dialog
-    if (showDialog) {
+    if (uiState.dialog is CreateTagDialogState.Visible) {
         CreateTagDialog(
-            onDismiss = { viewModel.dismissCreateDialog() },
-            onCreate = { title, desc -> viewModel.createTag(title, desc) }
+            onDismiss = { onEvent(SkyViewEvent.DismissCreateDialog) },
+            onCreate = { title, desc -> onEvent(SkyViewEvent.CreateTag(title, desc)) }
         )
     }
 }
@@ -203,12 +221,14 @@ private fun HUD(
     pitch: Float,
     lat: Double?,
     lon: Double?,
-    tagCount: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
-            .background(Color(0x88000000), RoundedCornerShape(8.dp))
+            .background(
+                color = Color(0x40000000),
+                shape = RoundedCornerShape(8.dp)
+            )
             .padding(8.dp)
     ) {
         Text(
@@ -286,5 +306,15 @@ private fun CreateTagDialog(
                 }
             }
         }
+    )
+}
+
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun SkyViewPreview() {
+    SkyViewContent(
+        uiState = TempDataSource.sampleSkyViewUiState,
+        onEvent = {}
     )
 }
