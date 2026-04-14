@@ -1,4 +1,4 @@
-package com.app.research.skyview.location
+package com.app.research.areatag.location
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -49,8 +49,8 @@ class LocationProvider(context: Context) {
 
     @SuppressLint("MissingPermission")
     fun observeLocation(): Flow<Location> = callbackFlow {
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000L)
-            .setMinUpdateIntervalMillis(1500L)
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
+            .setWaitForAccurateLocation(true)
             .build()
 
         val callback = object : LocationCallback() {

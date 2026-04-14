@@ -1,20 +1,20 @@
 package com.app.research.data
 
 import android.location.Location
+import com.app.research.areatag.data.Zone
+import com.app.research.areatag.sensor.Orientation
+import com.app.research.areatag.ui.AreaTagUiState
+import com.app.research.areatag.ui.CreateTagDialogState
+import com.app.research.areatag.ui.TagScreenPosition
 import com.app.research.chatpaging.Chat
 import com.app.research.singlescreen_r_d.skaifitness.MyProgressBarChart.Item
-import com.app.research.skyview.CreateTagDialogState
-import com.app.research.skyview.SkyViewUiState
-import com.app.research.skyview.TagScreenPosition
-import com.app.research.skyview.data.SkyTag
-import com.app.research.skyview.sensor.Orientation
 
 object TempDataSource {
 
-    val sampleSkyViewUiState: SkyViewUiState = run {
+    val sampleAreaTagUiState: AreaTagUiState = run {
         val tags = listOf(
-            SkyTag(
-                id = "tag-1",
+            Zone.Tag(
+                id = 1,
                 latitude = 23.0225,
                 longitude = 72.5714,
                 yaw = 45f,
@@ -22,16 +22,16 @@ object TempDataSource {
                 title = "Rooftop Antenna",
                 description = "Main broadcast mast"
             ),
-            SkyTag(
-                id = "tag-2",
+            Zone.Tag(
+                id = 2,
                 latitude = 23.0230,
                 longitude = 72.5720,
                 yaw = 120f,
                 pitch = -5f,
                 title = "Water Tank"
             ),
-            SkyTag(
-                id = "tag-3",
+            Zone.Tag(
+                id = 3,
                 latitude = 23.0220,
                 longitude = 72.5710,
                 yaw = 280f,
@@ -40,11 +40,12 @@ object TempDataSource {
             )
         )
 
-        SkyViewUiState(
+        AreaTagUiState(
             orientation = Orientation(yaw = 50f, pitch = 8f, roll = 0f),
             location = Location("preview").apply {
                 latitude = 23.0225
                 longitude = 72.5714
+                accuracy = 4.2f
             },
             tagPositions = listOf(
                 TagScreenPosition(

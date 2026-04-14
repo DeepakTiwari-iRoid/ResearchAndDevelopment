@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.app.research.Screens.CamPointsMappingOverlay
 import com.app.research.Screens.ARSample360
 import com.app.research.Screens.ArTagging
-import com.app.research.Screens.SkyView
+import com.app.research.Screens.AreaTag
 import com.app.research.Screens.WebRTCAudioCalling
 import com.app.research.Screens.ChatCustomPaging
 import com.app.research.Screens.TensorFlow
@@ -145,7 +145,7 @@ enum class Screens {
     CamPointsMappingOverlay,
     WebRTCAudioCalling,
     ARSample360,
-    SkyView,
+    AreaTag,
     ArTagging
 }
 
@@ -196,8 +196,8 @@ fun navigateToScreen(
             intent(context, ComposeHostActivity::class.java, bundle = bundle)
         }
 
-        SkyView -> {
-            bundle.putString(Constants.KEYS.START_DEST, SkyView.name)
+        AreaTag -> {
+            bundle.putString(Constants.KEYS.START_DEST, AreaTag.name)
             intent(context, ComposeHostActivity::class.java, bundle = bundle)
         }
 

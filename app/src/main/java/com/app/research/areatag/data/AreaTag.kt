@@ -1,8 +1,8 @@
-package com.app.research.skyview.data
+package com.app.research.areatag.data
 
 import java.util.UUID
 
-data class SkyTag(
+data class AreaTag(
     val id: String = UUID.randomUUID().toString(),
     val latitude: Double,
     val longitude: Double,

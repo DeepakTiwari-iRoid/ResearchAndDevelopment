@@ -1,4 +1,4 @@
-package com.app.research.skyview.ui
+package com.app.research.areatag.ui
 
 import android.Manifest
 import androidx.camera.core.CameraSelector
@@ -44,10 +44,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.research.data.TempDataSource
-import com.app.research.skyview.CreateTagDialogState
-import com.app.research.skyview.SkyViewEvent
-import com.app.research.skyview.SkyViewUiState
-import com.app.research.skyview.SkyViewViewModel
 import com.app.research.ui.isPreviewMode
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -55,8 +51,8 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun SkyViewScreen(
-    viewModel: SkyViewViewModel = viewModel()
+fun AreaTagScreen(
+    viewModel: AreaTagViewModel = viewModel()
 ) {
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -67,7 +63,7 @@ fun SkyViewScreen(
 
     if (permissionsState.allPermissionsGranted) {
         val uiState by viewModel.uiState.collectAsState()
-        SkyViewContent(
+        AreaTagContent(
             uiState = uiState,
             onEvent = viewModel::onEvent
         )
@@ -88,7 +84,7 @@ private fun PermissionRequest(onRequestPermissions: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "SkyView needs Camera & Location",
+                "AreaTag needs Camera & Location",
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
@@ -105,9 +101,9 @@ private fun PermissionRequest(onRequestPermissions: () -> Unit) {
 }
 
 @Composable
-private fun SkyViewContent(
-    uiState: SkyViewUiState,
-    onEvent: (SkyViewEvent) -> Unit
+private fun AreaTagContent(
+    uiState: AreaTagUiState,
+    onEvent: (AreaTagEvent) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -117,7 +113,7 @@ private fun SkyViewContent(
     val tagPositions = uiState.tagPositions
 
     DisposableEffect(Unit) {
-        onEvent(SkyViewEvent.StartSensors)
+        onEvent(AreaTagEvent.StartSensors)
         onDispose { }
     }
 
@@ -175,7 +171,7 @@ private fun SkyViewContent(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 ) {
-                    onEvent(SkyViewEvent.ScreenTapped)
+                    onEvent(AreaTagEvent.ScreenTapped)
                 }
         )
 
@@ -187,6 +183,15 @@ private fun SkyViewContent(
             lon = location?.longitude,
             modifier = Modifier
                 .align(Alignment.TopStart)
+                .statusBarsPadding()
+                .padding(16.dp)
+        )
+
+        // Location accuracy indicator
+        AccuracyIndicator(
+            accuracyMeters = if (location?.hasAccuracy() == true) location.accuracy else null,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
                 .statusBarsPadding()
                 .padding(16.dp)
         )
@@ -209,8 +214,8 @@ private fun SkyViewContent(
     // Create tag dialog
     if (uiState.dialog is CreateTagDialogState.Visible) {
         CreateTagDialog(
-            onDismiss = { onEvent(SkyViewEvent.DismissCreateDialog) },
-            onCreate = { title, desc -> onEvent(SkyViewEvent.CreateTag(title, desc)) }
+            onDismiss = { onEvent(AreaTagEvent.DismissCreateDialog) },
+            onCreate = { title, desc -> onEvent(AreaTagEvent.CreateTag(title, desc)) }
         )
     }
 }
@@ -243,6 +248,50 @@ private fun HUD(
         } else {
             Text("Acquiring GPS...", color = Color.Yellow, fontSize = 10.sp)
         }
+    }
+}
+
+private enum class AccuracyLevel(val label: String, val color: Color) {
+    VeryHigh("Very High", Color(0xFF69F0AE)),
+    High("High", Color(0xFF4CAF50)),
+    Medium("Medium", Color(0xFFFFC107)),
+    Low("Low", Color(0xB3FF5252)),
+    VeryLow("Very Low", Color(0xFFFF5252)),
+    Unknown("--", Color(0xFFBDBDBD));
+
+    companion object {
+        fun from(accuracyMeters: Float?): AccuracyLevel = when {
+            accuracyMeters == null -> Unknown
+            accuracyMeters < 5f -> VeryHigh
+            accuracyMeters < 10f -> High
+            accuracyMeters < 20f -> Medium
+            accuracyMeters < 30f -> Low
+            else -> VeryLow
+        }
+    }
+}
+
+@Composable
+private fun AccuracyIndicator(
+    accuracyMeters: Float?,
+    modifier: Modifier = Modifier
+) {
+    val level = AccuracyLevel.from(accuracyMeters)
+    val valueText = if (accuracyMeters == null) level.label
+    else "${"%.1f".format(accuracyMeters)}m | ${level.label}"
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .background(Color(0x88000000), RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = "$valueText Accuracy",
+            color = level.color,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -312,9 +361,9 @@ private fun CreateTagDialog(
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-private fun SkyViewPreview() {
-    SkyViewContent(
-        uiState = TempDataSource.sampleSkyViewUiState,
+private fun AreaTagPreview() {
+    AreaTagContent(
+        uiState = TempDataSource.sampleAreaTagUiState,
         onEvent = {}
     )
 }

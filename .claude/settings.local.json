@@ -30,7 +30,11 @@
       "Bash(ls /tmp/h3build/h3/src/h3lib/include/h3api.h*)",
       "Bash(mkdir -p /tmp/h3build/jni-gen)",
       "Bash(javac -h /tmp/h3build/jni-gen com/uber/h3core/NativeMethods.java)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(mv SkyViewViewModel.kt AreaTagViewModel.kt)",
+      "Bash(mv ui/SkyViewScreen.kt ui/AreaTagScreen.kt)",
+      "Bash(mv data/SkyTag.kt data/AreaTag.kt)",
+      "Bash(mv data/SkyTagStore.kt data/AreaTagStore.kt)"
     ]
   }
 }

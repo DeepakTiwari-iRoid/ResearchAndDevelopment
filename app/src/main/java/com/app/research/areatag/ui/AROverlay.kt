@@ -1,4 +1,4 @@
-package com.app.research.skyview.ui
+package com.app.research.areatag.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,10 +12,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
-import com.app.research.skyview.SkyViewViewModel.Companion.VISIBILITY_PITCH_THRESHOLD
-import com.app.research.skyview.SkyViewViewModel.Companion.VISIBILITY_YAW_THRESHOLD
-import com.app.research.skyview.TagScreenPosition
-import kotlin.math.abs
+import com.app.research.areatag.ui.AreaTagViewModel.Companion.VISIBILITY_PITCH_THRESHOLD
+import com.app.research.areatag.ui.AreaTagViewModel.Companion.VISIBILITY_YAW_THRESHOLD
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 

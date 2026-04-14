@@ -1,4 +1,4 @@
-package com.app.research.skyview.sensor
+package com.app.research.areatag.sensor
 
 import android.content.Context
 import android.hardware.Sensor

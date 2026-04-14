@@ -19,7 +19,7 @@ import com.app.research.data.Constants
 import com.app.research.tensorflow.TensorFlow
 import com.app.research.arsample.ARSampleScreen
 import com.app.research.artagging.ui.ArTaggingScreen
-import com.app.research.skyview.ui.SkyViewScreen
+import com.app.research.areatag.ui.AreaTagScreen
 import com.app.research.webrtcaudiocalling.presentation.CallScreen
 import org.opencv.android.OpenCVLoader
 import timber.log.Timber
@@ -86,8 +86,8 @@ fun ComposeHost(
             ARSampleScreen()
         }
 
-        composable(route = Screens.SkyView.name) {
-            SkyViewScreen()
+        composable(route = Screens.AreaTag.name) {
+            AreaTagScreen()
         }
 
         composable(route = Screens.ArTagging.name) {
