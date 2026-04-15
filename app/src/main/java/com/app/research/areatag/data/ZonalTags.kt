@@ -1,6 +1,7 @@
 package com.app.research.areatag.data
 
 
+import com.app.research.utils.AppUtils.getNiceColor
 import com.google.gson.annotations.SerializedName
 import java.util.UUID
 
@@ -36,4 +37,6 @@ data class Zone(
         @SerializedName("createdAt")
         val createdAt: String = ""
     )
+
+    val color = getNiceColor(zoneId)
 }

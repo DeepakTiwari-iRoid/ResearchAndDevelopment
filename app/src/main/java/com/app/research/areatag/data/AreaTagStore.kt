@@ -16,6 +16,7 @@ class AreaTagStore(context: Context) {
         return try {
             val json = file.readText()
             val type = object : TypeToken<List<Zone>>() {}.type
+            Timber.d("Zone Json: $json")
             gson.fromJson(json, type) ?: emptyList()
         } catch (e: Exception) {
             Timber.e(e, "Failed to load area tags")

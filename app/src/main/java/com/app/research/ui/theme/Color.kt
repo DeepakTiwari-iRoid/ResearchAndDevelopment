@@ -11,7 +11,7 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 
-val neonNazar  = Color(0xFF59D6DF)
+val neonNazar = Color(0xFF59D6DF)
 val grey94 = Color(0xFF949B9C)
 val black25 = Color(0xFF252525)
 val black = Color(0xFF000000)
@@ -23,3 +23,4 @@ val primaryGreen = Color(0xFF64B054)
 val GreyF2 = Color(0xFFF2F2F2)
 val Black23 = Color(0XFF232323)
 val Black60 = Color(0x99000000)
+val blackA25 = Color(0x40000000)

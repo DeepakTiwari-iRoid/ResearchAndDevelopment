@@ -3,6 +3,7 @@ package com.app.research.utils
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -20,6 +21,15 @@ import kotlin.math.sqrt
 
 object AppUtils {
 
+
+    fun getNiceColor(hexId: String): Int {
+        val hash = hexId.hashCode()
+        val r = 100 + (hash shr 16 and 0x7F)
+        val g = 100 + (hash shr 8 and 0x7F)
+        val b = 100 + (hash and 0x7F)
+
+        return Color.rgb(r, g, b)
+    }
 
     fun <T> intent(
         context: Context,

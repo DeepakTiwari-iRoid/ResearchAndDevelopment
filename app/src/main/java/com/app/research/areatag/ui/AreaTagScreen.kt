@@ -22,6 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -44,7 +47,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.research.data.TempDataSource
+import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.isPreviewMode
+import com.app.research.ui.theme.black
+import com.app.research.ui.theme.blackA25
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlin.math.roundToInt
@@ -56,21 +62,18 @@ fun AreaTagScreen(
 ) {
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION
         )
     )
 
     if (permissionsState.allPermissionsGranted) {
         val uiState by viewModel.uiState.collectAsState()
         AreaTagContent(
-            uiState = uiState,
-            onEvent = viewModel::onEvent
+            uiState = uiState, onEvent = viewModel::onEvent
         )
     } else {
         PermissionRequest(
-            onRequestPermissions = { permissionsState.launchMultiplePermissionRequest() }
-        )
+            onRequestPermissions = { permissionsState.launchMultiplePermissionRequest() })
     }
 }
 
@@ -102,8 +105,7 @@ private fun PermissionRequest(onRequestPermissions: () -> Unit) {
 
 @Composable
 private fun AreaTagContent(
-    uiState: AreaTagUiState,
-    onEvent: (AreaTagEvent) -> Unit
+    uiState: AreaTagUiState, onEvent: (AreaTagEvent) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -120,7 +122,7 @@ private fun AreaTagContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(Color.White)
     ) {
 
         if (!isPreviewMode) {
@@ -142,25 +144,21 @@ private fun AreaTagContent(
                         try {
                             cameraProvider.unbindAll()
                             cameraProvider.bindToLifecycle(
-                                lifecycleOwner,
-                                CameraSelector.DEFAULT_BACK_CAMERA,
-                                preview
+                                lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
                             )
                         } catch (_: Exception) {
                         }
                     }, androidx.core.content.ContextCompat.getMainExecutor(context))
 
                     previewView
-                },
-                modifier = Modifier.fillMaxSize()
+                }, modifier = Modifier.fillMaxSize()
             )
         }
 
 
         // AR Overlay — tags, crosshair, arrows
         AROverlay(
-            tagPositions = tagPositions,
-            modifier = Modifier.fillMaxSize()
+            tagPositions = tagPositions, modifier = Modifier.fillMaxSize()
         )
 
         // Tap target (invisible, captures taps)
@@ -169,11 +167,9 @@ private fun AreaTagContent(
                 .fillMaxSize()
                 .clickable(
                     indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
+                    interactionSource = remember { MutableInteractionSource() }) {
                     onEvent(AreaTagEvent.ScreenTapped)
-                }
-        )
+                })
 
         // HUD: sensor info
         HUD(
@@ -188,14 +184,25 @@ private fun AreaTagContent(
         )
 
         // Location accuracy indicator
-        AccuracyIndicator(
-            accuracyMeters = if (location?.hasAccuracy() == true) location.accuracy else null,
+
+        VStack(
+            spaceBy = 8.dp,
+            horizontalAlignment = Alignment.End,
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .padding(end = 16.dp, top = 16.dp)
                 .statusBarsPadding()
-                .padding(16.dp)
-        )
+        ) {
+            AccuracyIndicator(
+                accuracyMeters = if (location?.hasAccuracy() == true) location.accuracy else null,
+                modifier = Modifier
 
+            )
+
+            ZoneDropDown(
+                modifier = Modifier
+            )
+        }
         // Tag count badge
         if (tagPositions.isNotEmpty()) {
             Text(
@@ -215,35 +222,31 @@ private fun AreaTagContent(
     if (uiState.dialog is CreateTagDialogState.Visible) {
         CreateTagDialog(
             onDismiss = { onEvent(AreaTagEvent.DismissCreateDialog) },
-            onCreate = { title, desc -> onEvent(AreaTagEvent.CreateTag(title, desc)) }
-        )
+            onCreate = { title, desc -> onEvent(AreaTagEvent.CreateTag(title, desc)) })
     }
 }
 
 @Composable
 private fun HUD(
-    yaw: Float,
-    pitch: Float,
-    lat: Double?,
-    lon: Double?,
-    modifier: Modifier = Modifier
+    yaw: Float, pitch: Float, lat: Double?, lon: Double?, modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .background(
-                color = Color(0x40000000),
-                shape = RoundedCornerShape(8.dp)
+                color = blackA25, shape = RoundedCornerShape(8.dp)
             )
             .padding(8.dp)
     ) {
         Text(
             "Yaw: ${yaw.roundToInt()}°  Pitch: ${pitch.roundToInt()}°",
-            color = Color.White, fontSize = 11.sp
+            color = Color.White,
+            fontSize = 11.sp
         )
         if (lat != null && lon != null) {
             Text(
                 "GPS: ${"%.5f".format(lat)}, ${"%.5f".format(lon)}",
-                color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 10.sp
             )
         } else {
             Text("Acquiring GPS...", color = Color.Yellow, fontSize = 10.sp)
@@ -252,12 +255,14 @@ private fun HUD(
 }
 
 private enum class AccuracyLevel(val label: String, val color: Color) {
-    VeryHigh("Very High", Color(0xFF69F0AE)),
-    High("High", Color(0xFF4CAF50)),
-    Medium("Medium", Color(0xFFFFC107)),
-    Low("Low", Color(0xB3FF5252)),
-    VeryLow("Very Low", Color(0xFFFF5252)),
-    Unknown("--", Color(0xFFBDBDBD));
+    VeryHigh("Very High", Color(0xFF00FF81)), High("High", Color(0xFF4CAF50)), Medium(
+        "Medium",
+        Color(0xFFFFC107)
+    ),
+    Low("Low", Color(0xB3FF5252)), VeryLow("Very Low", Color(0xFFFF5252)), Unknown(
+        "--",
+        Color(0xFFBDBDBD)
+    );
 
     companion object {
         fun from(accuracyMeters: Float?): AccuracyLevel = when {
@@ -273,17 +278,17 @@ private enum class AccuracyLevel(val label: String, val color: Color) {
 
 @Composable
 private fun AccuracyIndicator(
-    accuracyMeters: Float?,
-    modifier: Modifier = Modifier
+    accuracyMeters: Float?, modifier: Modifier = Modifier
 ) {
     val level = AccuracyLevel.from(accuracyMeters)
     val valueText = if (accuracyMeters == null) level.label
     else "${"%.1f".format(accuracyMeters)}m | ${level.label}"
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .background(Color(0x88000000), RoundedCornerShape(8.dp))
+        verticalAlignment = Alignment.CenterVertically, modifier = modifier
+            .background(
+                color = blackA25, shape = RoundedCornerShape(8.dp)
+            )
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Text(
@@ -295,67 +300,93 @@ private fun AccuracyIndicator(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ZoneDropDown(modifier: Modifier = Modifier) {
+    var isExpanded by remember { mutableStateOf(true) }
+
+    Box(modifier = modifier) {
+
+        VStack(8.dp) {
+
+            Text(
+                text = "Select Zone", color = Color.White, modifier = Modifier
+                    .background(color = blackA25, shape = RoundedCornerShape(8.dp))
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            )
+
+            DropdownMenu(
+                shape = RoundedCornerShape(8.dp),
+                containerColor = black,
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false }) {
+                repeat(10) { index ->
+                    DropdownMenuItem(
+                        text = { Text("Zone $index", color = Color.White) },
+                        onClick = {
+                            isExpanded = !isExpanded
+                        })
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun CreateTagDialog(
-    onDismiss: () -> Unit,
-    onCreate: (title: String, description: String) -> Unit
+    onDismiss: () -> Unit, onCreate: (title: String, description: String) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1E1E2E),
-        title = {
-            Text("Place Tag Here", color = Color.White)
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title", color = Color.Gray) },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF00E5FF),
-                        cursorColor = Color(0xFF00E5FF)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (optional)", color = Color.Gray) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF00E5FF),
-                        cursorColor = Color(0xFF00E5FF)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+    AlertDialog(onDismissRequest = onDismiss, containerColor = Color(0xFF1E1E2E), title = {
+        Text("Place Tag Here", color = Color.White)
+    }, text = {
+        Column {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Title", color = Color.Gray) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = Color(0xFF00E5FF),
+                    cursorColor = Color(0xFF00E5FF)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description (optional)", color = Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = Color(0xFF00E5FF),
+                    cursorColor = Color(0xFF00E5FF)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }, confirmButton = {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = Color.Gray)
             }
-        },
-        confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDismiss) {
-                    Text("Cancel", color = Color.Gray)
-                }
-                Button(
-                    onClick = {
-                        if (title.isNotBlank()) onCreate(title.trim(), description.trim())
-                    },
-                    enabled = title.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
-                ) {
-                    Text("Place", color = Color.Black)
-                }
+            Button(
+                onClick = {
+                    if (title.isNotBlank()) onCreate(title.trim(), description.trim())
+                },
+                enabled = title.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
+            ) {
+                Text("Place", color = Color.Black)
             }
         }
-    )
+    })
 }
 
 
@@ -363,7 +394,5 @@ private fun CreateTagDialog(
 @Composable
 private fun AreaTagPreview() {
     AreaTagContent(
-        uiState = TempDataSource.sampleAreaTagUiState,
-        onEvent = {}
-    )
+        uiState = TempDataSource.sampleAreaTagUiState, onEvent = {})
 }

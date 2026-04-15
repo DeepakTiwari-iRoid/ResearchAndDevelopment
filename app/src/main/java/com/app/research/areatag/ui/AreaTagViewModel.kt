@@ -44,7 +44,10 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
     private val _dialog = MutableStateFlow<CreateTagDialogState>(CreateTagDialogState.Hidden)
 
     val uiState: StateFlow<AreaTagUiState> = combine(
-        _orientation, _location, _allTags, _dialog
+        _orientation,
+        _location,
+        _allTags,
+        _dialog
     ) { orient, loc, tags, dialog ->
         AreaTagUiState(
             orientation = orient,
