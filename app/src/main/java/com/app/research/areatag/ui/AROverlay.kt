@@ -14,13 +14,16 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import com.app.research.areatag.ui.AreaTagViewModel.Companion.VISIBILITY_PITCH_THRESHOLD
 import com.app.research.areatag.ui.AreaTagViewModel.Companion.VISIBILITY_YAW_THRESHOLD
+import com.app.research.ui.theme.vividCyan
+import com.app.research.ui.theme.vividCyanA27
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 
 @Composable
 fun AROverlay(
     tagPositions: List<TagScreenPosition>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    zoneArrow: ZoneArrowState? = null
 ) {
     Canvas(modifier = modifier.fillMaxSize()) {
         drawCrosshair()
@@ -31,6 +34,7 @@ fun AROverlay(
                 drawDirectionalArrow(tagPos)
             }
         }
+        zoneArrow?.let { drawZoneNavArrow(it) }
     }
 }
 
@@ -69,14 +73,14 @@ private fun DrawScope.drawTagMarker(tagPos: TagScreenPosition) {
 
     // Outer glow
     drawCircle(
-        color = Color(0x4400E5FF),
+        color = vividCyanA27,
         radius = markerRadius + 4.dp.toPx(),
         center = Offset(screenX, screenY)
     )
 
     // Main marker circle
     drawCircle(
-        color = Color(0xFF00E5FF),
+        color = vividCyan,
         radius = markerRadius,
         center = Offset(screenX, screenY),
         style = Stroke(width = 2.5.dp.toPx())
@@ -84,7 +88,7 @@ private fun DrawScope.drawTagMarker(tagPos: TagScreenPosition) {
 
     // Inner dot
     drawCircle(
-        color = Color(0xFF00E5FF),
+        color = vividCyan,
         radius = 4.dp.toPx(),
         center = Offset(screenX, screenY)
     )
@@ -98,8 +102,9 @@ private fun DrawScope.drawTagMarker(tagPos: TagScreenPosition) {
     }
 
     val label = tagPos.tag.title
-    val distLabel = "${tagPos.distanceMeters.roundToInt()}m"
-    val fullLabel = "$label  $distLabel"
+//    val distLabel = "${tagPos.distanceMeters.roundToInt()}m"
+//    val fullLabel = "$label  $distLabel" TODO: Optimize this
+    val fullLabel = label
 
     val textWidth = paint.measureText(fullLabel)
     drawContext.canvas.nativeCanvas.drawText(
@@ -163,4 +168,74 @@ private fun DrawScope.drawDirectionalArrow(tagPos: TagScreenPosition) {
         edgeY + arrowSize + 16.dp.toPx(),
         paint
     )
+}
+
+/**
+ * Compass-style zone pointer. Shown at bottom-center; rotates around its pivot so the arrow tip
+ * points toward the selected zone's center (bearing from current device heading).
+ * deltaYaw = 0 → arrow points straight up (zone is ahead).
+ */
+private fun DrawScope.drawZoneNavArrow(zoneArrow: ZoneArrowState) {
+    val cx = size.width / 2f
+    val pivotY = size.height - 140.dp.toPx()
+    val pivot = Offset(cx, pivotY)
+
+    val ringRadius = 48.dp.toPx()
+    val arrowLen = 40.dp.toPx()
+    val arrowWidth = 22.dp.toPx()
+
+    val zoneColor = Color(zoneArrow.colorArgb)
+
+    // Backing ring
+    drawCircle(
+        color = Color(0x66000000),
+        radius = ringRadius,
+        center = pivot
+    )
+    drawCircle(
+        color = zoneColor.copy(alpha = 0.9f),
+        radius = ringRadius,
+        center = pivot,
+        style = Stroke(width = 2.dp.toPx())
+    )
+
+    rotate(degrees = zoneArrow.deltaYaw, pivot = pivot) {
+        val tipY = pivotY - arrowLen
+        val baseY = pivotY + arrowLen * 0.25f
+        val path = Path().apply {
+            moveTo(cx, tipY)
+            lineTo(cx - arrowWidth / 2f, baseY)
+            lineTo(cx, baseY - arrowWidth * 0.25f)
+            lineTo(cx + arrowWidth / 2f, baseY)
+            close()
+        }
+        drawPath(path, color = zoneColor)
+        drawPath(
+            path,
+            color = Color.White.copy(alpha = 0.85f),
+            style = Stroke(width = 1.5.dp.toPx())
+        )
+    }
+
+    // Distance + title label under the compass
+    val paint = android.graphics.Paint().apply {
+        this.color = android.graphics.Color.WHITE
+        textSize = 11.dp.toPx()
+        isAntiAlias = true
+        setShadowLayer(4f, 0f, 0f, android.graphics.Color.BLACK)
+    }
+    val distanceText = formatDistance(zoneArrow.distanceMeters)
+    val label = "${zoneArrow.title} • $distanceText"
+    val labelWidth = paint.measureText(label)
+    drawContext.canvas.nativeCanvas.drawText(
+        label,
+        cx - labelWidth / 2f,
+        pivotY + ringRadius + 18.dp.toPx(),
+        paint
+    )
+}
+
+private fun formatDistance(meters: Double): String = when {
+    meters < 1000.0 -> "${meters.roundToInt()} m"
+    else -> "${"%.1f".format(meters / 1000.0)} km"
 }

@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,12 +42,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.app.research.R
+import com.app.research.areatag.data.Zone
 import com.app.research.data.TempDataSource
 import com.app.research.singlescreen_r_d.skaifitness.VStack
 import com.app.research.ui.isPreviewMode
@@ -158,7 +164,9 @@ private fun AreaTagContent(
 
         // AR Overlay — tags, crosshair, arrows
         AROverlay(
-            tagPositions = tagPositions, modifier = Modifier.fillMaxSize()
+            tagPositions = tagPositions,
+            zoneArrow = uiState.zoneArrow,
+            modifier = Modifier.fillMaxSize()
         )
 
         // Tap target (invisible, captures taps)
@@ -171,18 +179,28 @@ private fun AreaTagContent(
                     onEvent(AreaTagEvent.ScreenTapped)
                 })
 
-        // HUD: sensor info
-        HUD(
-            yaw = orientation.yaw,
-            pitch = orientation.pitch,
-            lat = location?.latitude,
-            lon = location?.longitude,
+        VStack(
+            horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
                 .padding(16.dp)
-        )
+        ) {
 
+            // HUD: sensor info
+            HUD(
+                yaw = orientation.yaw,
+                pitch = orientation.pitch,
+                lat = location?.latitude,
+                lon = location?.longitude,
+                modifier = Modifier
+            )
+
+            StabilityIndicator(
+                stability = uiState.stability,
+                modifier = Modifier
+            )
+        }
         // Location accuracy indicator
 
         VStack(
@@ -200,13 +218,20 @@ private fun AreaTagContent(
             )
 
             ZoneDropDown(
+                zones = uiState.zones,
+                selectedZoneId = uiState.selectedZoneId,
+                onSelect = { onEvent(AreaTagEvent.SelectZone(it)) },
                 modifier = Modifier
             )
         }
         // Tag count badge
         if (tagPositions.isNotEmpty()) {
             Text(
-                text = "${tagPositions.size} tag(s) nearby",
+                text = pluralStringResource(
+                    R.plurals.tag_count_nearby,
+                    tagPositions.size,
+                    tagPositions.size
+                ),
                 color = Color(0xFF00E5FF),
                 fontSize = 12.sp,
                 modifier = Modifier
@@ -219,10 +244,15 @@ private fun AreaTagContent(
     }
 
     // Create tag dialog
-    if (uiState.dialog is CreateTagDialogState.Visible) {
+    val dialog = uiState.dialog
+    if (dialog is CreateTagDialogState.Visible) {
         CreateTagDialog(
+            isNewZone = dialog.isNewZone,
             onDismiss = { onEvent(AreaTagEvent.DismissCreateDialog) },
-            onCreate = { title, desc -> onEvent(AreaTagEvent.CreateTag(title, desc)) })
+            onCreate = { tagTitle, tagDesc, zoneTitle, zoneDesc ->
+                onEvent(AreaTagEvent.CreateTag(tagTitle, tagDesc, zoneTitle, zoneDesc))
+            }
+        )
     }
 }
 
@@ -277,6 +307,33 @@ private enum class AccuracyLevel(val label: String, val color: Color) {
 }
 
 @Composable
+private fun StabilityIndicator(
+    stability: ZoneStabilityState,
+    modifier: Modifier = Modifier
+) {
+    val isStable = stability.isStable
+    val color = if (isStable) Color(0xFF00FF81) else Color(0xFFFFC107)
+    val label = if (isStable) {
+        "Stable"
+    } else {
+        "Unstable ${stability.consecutiveCount}/${stability.threshold}"
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .background(color = blackA25, shape = RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = label,
+            color = color,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
 private fun AccuracyIndicator(
     accuracyMeters: Float?, modifier: Modifier = Modifier
 ) {
@@ -302,52 +359,154 @@ private fun AccuracyIndicator(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ZoneDropDown(modifier: Modifier = Modifier) {
-    var isExpanded by remember { mutableStateOf(true) }
+fun ZoneDropDown(
+    zones: List<Zone>,
+    selectedZoneId: String?,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val selectedZone = zones.firstOrNull { it.zoneId == selectedZoneId }
+    val label = when {
+        zones.isEmpty() -> "No Zones"
+        selectedZone != null -> selectedZone.title.ifBlank { shortZoneId(selectedZone.zoneId) }
+        else -> "Select Zone"
+    }
 
     Box(modifier = modifier) {
-
         VStack(8.dp) {
-
-            Text(
-                text = "Select Zone", color = Color.White, modifier = Modifier
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
                     .background(color = blackA25, shape = RoundedCornerShape(8.dp))
-                    .clickable { isExpanded = !isExpanded }
+                    .clickable(enabled = zones.isNotEmpty()) { isExpanded = !isExpanded }
                     .padding(horizontal = 10.dp, vertical = 6.dp)
-            )
+            ) {
+                if (selectedZone != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .background(Color(selectedZone.color), CircleShape)
+                    )
+                }
+                Text(text = label, color = Color.White, fontSize = 12.sp)
+            }
 
             DropdownMenu(
                 shape = RoundedCornerShape(8.dp),
                 containerColor = black,
-                expanded = isExpanded,
-                onDismissRequest = { isExpanded = false }) {
-                repeat(10) { index ->
+                expanded = isExpanded && zones.isNotEmpty(),
+                onDismissRequest = { isExpanded = false }
+            ) {
+                zones.forEach { zone ->
                     DropdownMenuItem(
-                        text = { Text("Zone $index", color = Color.White) },
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .background(Color(zone.color), CircleShape)
+                                )
+
+                                Column {
+                                    Text(
+                                        text = zone.title.ifBlank { shortZoneId(zone.zoneId) },
+                                        color = Color.White,
+                                        lineHeight = 1.em,
+                                        fontSize = 13.sp,
+                                        fontWeight = if (zone.zoneId == selectedZoneId) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    Text(
+                                        text = pluralStringResource(
+                                            R.plurals.tag_count,
+                                            zone.tags.size,
+                                            zone.tags.size
+                                        ),
+                                        color = Color.White.copy(alpha = 0.6f),
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
+                        },
                         onClick = {
-                            isExpanded = !isExpanded
-                        })
+                            onSelect(zone.zoneId)
+                            isExpanded = false
+                        }
+                    )
                 }
             }
         }
     }
 }
 
+private fun shortZoneId(id: String): String =
+    if (id.length <= 8) id else "${id.take(4)}…${id.takeLast(4)}"
+
 @Composable
 private fun CreateTagDialog(
-    onDismiss: () -> Unit, onCreate: (title: String, description: String) -> Unit
+    isNewZone: Boolean,
+    onDismiss: () -> Unit,
+    onCreate: (title: String, description: String, zoneTitle: String?, zoneDescription: String?) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var zoneTitle by remember { mutableStateOf("") }
+    var zoneDescription by remember { mutableStateOf("") }
+
+    val canSubmit = title.isNotBlank() && (!isNewZone || zoneTitle.isNotBlank())
 
     AlertDialog(onDismissRequest = onDismiss, containerColor = Color(0xFF1E1E2E), title = {
-        Text("Place Tag Here", color = Color.White)
+        Text(
+            if (isNewZone) "New Zone & First Tag" else "Place Tag Here",
+            color = Color.White
+        )
     }, text = {
         Column {
+            if (isNewZone) {
+                Text(
+                    "You're in a new zone. Name it before adding tags.",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 11.sp
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = zoneTitle,
+                    onValueChange = { zoneTitle = it },
+                    label = { Text("Zone Name", color = Color.Gray) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFF00E5FF),
+                        cursorColor = Color(0xFF00E5FF)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = zoneDescription,
+                    onValueChange = { zoneDescription = it },
+                    label = { Text("Zone Description (optional)", color = Color.Gray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFF00E5FF),
+                        cursorColor = Color(0xFF00E5FF)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title", color = Color.Gray) },
+                label = { Text("Tag Title", color = Color.Gray) },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
@@ -361,7 +520,7 @@ private fun CreateTagDialog(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description (optional)", color = Color.Gray) },
+                label = { Text("Tag Description (optional)", color = Color.Gray) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
@@ -378,12 +537,17 @@ private fun CreateTagDialog(
             }
             Button(
                 onClick = {
-                    if (title.isNotBlank()) onCreate(title.trim(), description.trim())
+                    if (canSubmit) onCreate(
+                        title.trim(),
+                        description.trim(),
+                        if (isNewZone) zoneTitle.trim() else null,
+                        if (isNewZone) zoneDescription.trim() else null
+                    )
                 },
-                enabled = title.isNotBlank(),
+                enabled = canSubmit,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
             ) {
-                Text("Place", color = Color.Black)
+                Text(if (isNewZone) "Create Zone" else "Place", color = Color.Black)
             }
         }
     })

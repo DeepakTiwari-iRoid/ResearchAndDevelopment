@@ -32,7 +32,7 @@ fun HStack(
 
 @Composable
 fun VStack(
-    spaceBy: Dp,
+    spaceBy: Dp = 8.dp,
     modifier: Modifier = Modifier,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(spaceBy),

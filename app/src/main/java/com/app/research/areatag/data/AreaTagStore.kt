@@ -25,16 +25,15 @@ class AreaTagStore(context: Context) {
     }
 
     fun save(zone: Zone) {
-        val tags = loadAll().toMutableList()
-        val existingZone = tags.find { it.zoneId == zone.zoneId }
-        if (existingZone != null) {
-            val addTagToZone =
-                existingZone.copy(tags = (existingZone.tags + zone.tags))
-            tags.add(addTagToZone)
+        val zones = loadAll().toMutableList()
+        val index = zones.indexOfFirst { it.zoneId == zone.zoneId }
+        if (index >= 0) {
+            val existing = zones[index]
+            zones[index] = existing.copy(tags = existing.tags + zone.tags)
         } else {
-            tags.add(zone)
+            zones.add(zone)
         }
-        writeAll(tags)
+        writeAll(zones)
     }
 
     fun delete(uuid: String) {

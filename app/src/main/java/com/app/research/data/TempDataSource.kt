@@ -6,6 +6,7 @@ import com.app.research.areatag.sensor.Orientation
 import com.app.research.areatag.ui.AreaTagUiState
 import com.app.research.areatag.ui.CreateTagDialogState
 import com.app.research.areatag.ui.TagScreenPosition
+import com.app.research.areatag.ui.ZoneArrowState
 import com.app.research.chatpaging.Chat
 import com.app.research.singlescreen_r_d.skaifitness.MyProgressBarChart.Item
 
@@ -40,6 +41,27 @@ object TempDataSource {
             )
         )
 
+        val sampleZones = listOf(
+            Zone(
+                zoneId = "8928308280fffff",
+                title = "Rooftop",
+                description = "Rooftop zone",
+                tags = tags
+            ),
+            Zone(
+                zoneId = "8928308281fffff",
+                title = "Courtyard",
+                description = "Courtyard zone",
+                tags = tags.take(1)
+            ),
+            Zone(
+                zoneId = "8928308283fffff",
+                title = "Parking",
+                description = "Parking zone",
+                tags = emptyList()
+            )
+        )
+
         AreaTagUiState(
             orientation = Orientation(yaw = 50f, pitch = 8f, roll = 0f),
             location = Location("preview").apply {
@@ -70,7 +92,16 @@ object TempDataSource {
                     isVisible = false
                 )
             ),
-            dialog = CreateTagDialogState.Hidden
+            dialog = CreateTagDialogState.Hidden,
+            zones = sampleZones,
+            selectedZoneId = sampleZones.first().zoneId,
+            zoneArrow = ZoneArrowState(
+                zoneId = sampleZones.first().zoneId,
+                colorArgb = sampleZones.first().color,
+                title = sampleZones.first().title,
+                deltaYaw = -35f,
+                distanceMeters = 182.0
+            )
         )
     }
 

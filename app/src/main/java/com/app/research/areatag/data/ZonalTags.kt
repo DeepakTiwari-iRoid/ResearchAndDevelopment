@@ -38,5 +38,5 @@ data class Zone(
         val createdAt: String = ""
     )
 
-    val color = getNiceColor(zoneId)
+    val color get() = getNiceColor(zoneId)
 }

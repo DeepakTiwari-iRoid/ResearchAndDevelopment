@@ -20,6 +20,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class AreaTagViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -27,33 +31,50 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
     private val orientationManager = OrientationManager(application)
     private val locationProvider = LocationProvider(application)
     private val tagStore = AreaTagStore(application)
-    private var hexZoneId: String = ""
     val h3: H3Core = ResearchApplication.instance.h3
-    private var zones = emptyList<Zone>()
 
     companion object {
         const val NEARBY_RADIUS_METERS = 50.0
         const val VISIBILITY_YAW_THRESHOLD = 30f
         const val VISIBILITY_PITCH_THRESHOLD = 25f
+        const val STABILITY_THRESHOLD = 10
+        private const val EARTH_RADIUS_METERS = 6_371_000.0
     }
 
 
     private val _orientation = MutableStateFlow(Orientation())
     private val _location = MutableStateFlow<Location?>(null)
-    private val _allTags = MutableStateFlow<List<Zone.Tag>>(emptyList())
     private val _dialog = MutableStateFlow<CreateTagDialogState>(CreateTagDialogState.Hidden)
+    private val _zones = MutableStateFlow<List<Zone>>(emptyList())
+    private val _selectedZoneId = MutableStateFlow<String?>(null)
+    private val _currentHexZoneId = MutableStateFlow("")
+    private val _stability = MutableStateFlow(ZoneStabilityState())
 
     val uiState: StateFlow<AreaTagUiState> = combine(
         _orientation,
         _location,
-        _allTags,
-        _dialog
-    ) { orient, loc, tags, dialog ->
+        _dialog,
+        combine(_zones, _selectedZoneId, _currentHexZoneId) { z, s, h -> Triple(z, s, h) },
+        _stability
+    ) { orient, loc, dialog, (zones, selectedId, currentHexId), stability ->
+        val isInTargetZone = selectedId == null || selectedId == currentHexId
+        val rawTags = if (isInTargetZone && currentHexId.isNotEmpty()) {
+            zones.find { it.zoneId == currentHexId }?.tags.orEmpty()
+        } else emptyList()
+        val arrow = if (!isInTargetZone) {
+            computeZoneArrow(zones, selectedId, loc, orient)
+        } else null
+
         AreaTagUiState(
             orientation = orient,
             location = loc,
-            tagPositions = computeTagPositions(tags, orient, loc),
-            dialog = dialog
+            tagPositions = computeTagPositions(rawTags, orient, loc),
+            dialog = dialog,
+            zones = zones,
+            selectedZoneId = selectedId,
+            currentHexZoneId = currentHexId.takeIf { it.isNotEmpty() },
+            zoneArrow = arrow,
+            stability = stability
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AreaTagUiState())
 
@@ -62,6 +83,17 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         reloadTags()
+        viewModelScope.launch {
+            combine(_currentHexZoneId, _zones) { hex, zones -> hex to zones }
+                .collect { (hex, zones) ->
+                    if (hex.isNotEmpty() &&
+                        _selectedZoneId.value == null &&
+                        zones.any { it.zoneId == hex }
+                    ) {
+                        _selectedZoneId.value = hex
+                    }
+                }
+        }
     }
 
 
@@ -70,8 +102,14 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
             AreaTagEvent.StartSensors -> startSensors()
             AreaTagEvent.ScreenTapped -> openCreateDialog()
             AreaTagEvent.DismissCreateDialog -> _dialog.value = CreateTagDialogState.Hidden
-            is AreaTagEvent.CreateTag -> createTag(event.title, event.description)
+            is AreaTagEvent.CreateTag -> createTag(
+                event.title,
+                event.description,
+                event.zoneTitle,
+                event.zoneDescription
+            )
             is AreaTagEvent.DeleteTag -> deleteTag(event.tagId)
+            is AreaTagEvent.SelectZone -> _selectedZoneId.value = event.zoneId
         }
     }
 
@@ -83,26 +121,48 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
         }
         viewModelScope.launch {
             locationProvider.observeLocation().collect {
-                _location.value = it
-                hexZoneId = h3.latLngToCellAddress(
+                val newHex = h3.latLngToCellAddress(
                     it.latitude,
                     it.longitude,
                     Constants.H3_RESOLUTION
                 )
-                updateZoneTags()
-                Timber.d("Current Location: hexId = $hexZoneId, location = $it")
+                val prevHex = _currentHexZoneId.value
+                val nextCount = if (newHex == prevHex && prevHex.isNotEmpty()) {
+                    _stability.value.consecutiveCount + 1
+                } else {
+                    1
+                }
+                _stability.value = ZoneStabilityState(
+                    consecutiveCount = nextCount,
+                    threshold = STABILITY_THRESHOLD
+                )
+                _currentHexZoneId.value = newHex
+                _location.value = it
+                Timber.d("Location: hexId=$newHex, stability=$nextCount/$STABILITY_THRESHOLD")
             }
-            reloadTags()
         }
     }
 
     private fun openCreateDialog() {
         val current = _orientation.value
-        _dialog.value = CreateTagDialogState.Visible(yaw = current.yaw, pitch = current.pitch)
+        val currentHex = _currentHexZoneId.value
+        if (currentHex.isEmpty()) return // no GPS yet
+        val isNewZone = _zones.value.none { it.zoneId == currentHex }
+        _dialog.value = CreateTagDialogState.Visible(
+            yaw = current.yaw,
+            pitch = current.pitch,
+            isNewZone = isNewZone
+        )
     }
 
-    private fun createTag(title: String, description: String) {
+    private fun createTag(
+        title: String,
+        description: String,
+        zoneTitle: String?,
+        zoneDescription: String?
+    ) {
         val loc = _location.value ?: return
+        val currentHex = _currentHexZoneId.value.ifEmpty { return }
         val snapshot = _dialog.value as? CreateTagDialogState.Visible ?: return
 
         val tag = Zone.Tag(
@@ -114,17 +174,22 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
             description = description
         )
 
-        val zone = Zone(
-            zoneId = hexZoneId,
-            title = "titleTex",
-            description = "description",
-            tags = listOf(tag)
-        )
+        val zone = if (snapshot.isNewZone) {
+            Zone(
+                zoneId = currentHex,
+                title = zoneTitle.orEmpty(),
+                description = zoneDescription.orEmpty(),
+                createdAt = System.currentTimeMillis(),
+                tags = listOf(tag)
+            )
+        } else {
+            // Existing zone: carry only the new tag; store merges it.
+            Zone(zoneId = currentHex, tags = listOf(tag))
+        }
 
         Timber.d("Saving Tag zone: $zone")
         viewModelScope.launch {
             tagStore.save(zone)
-            updateZoneTags()
             reloadTags()
         }
         _dialog.value = CreateTagDialogState.Hidden
@@ -138,16 +203,7 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun reloadTags() {
-        zones = tagStore.loadAll()
-        // need selection method to navigate to specific zone tags
-        updateZoneTags()
-    }
-
-
-    fun updateZoneTags() {
-        val selectedZone = zones.find { it.zoneId == hexZoneId }?.tags
-        _allTags.value = selectedZone ?: emptyList()
-        Timber.d("All Zones: $zones")
+        _zones.value = tagStore.loadAll()
     }
 
     private fun computeTagPositions(
@@ -171,12 +227,54 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    private fun computeZoneArrow(
+        zones: List<Zone>,
+        selectedId: String?,
+        loc: Location?,
+        orient: Orientation
+    ): ZoneArrowState? {
+        val id = selectedId ?: return null
+        if (loc == null) return null
+        val zone = zones.find { it.zoneId == id } ?: return null
+        val center = runCatching { h3.cellToLatLng(id) }.getOrNull() ?: return null
+        val bearing = bearingDegrees(loc.latitude, loc.longitude, center.lat, center.lng)
+        val distance = haversineMeters(loc.latitude, loc.longitude, center.lat, center.lng)
+        return ZoneArrowState(
+            zoneId = id,
+            colorArgb = zone.color,
+            title = zone.title.ifBlank { "Zone" },
+            deltaYaw = angleDelta(orient.yaw, bearing),
+            distanceMeters = distance
+        )
+    }
+
     /** Returns signed angle difference (-180 to +180) */
     private fun angleDelta(current: Float, saved: Float): Float {
         var delta = saved - current
         if (delta > 180f) delta -= 360f
         if (delta < -180f) delta += 360f
         return delta
+    }
+
+    /** Initial bearing from (lat1,lon1) to (lat2,lon2), degrees 0..360 (0 = north, clockwise). */
+    private fun bearingDegrees(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val phi1 = Math.toRadians(lat1)
+        val phi2 = Math.toRadians(lat2)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val y = sin(dLon) * cos(phi2)
+        val x = cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(dLon)
+        val deg = Math.toDegrees(atan2(y, x))
+        return ((deg + 360.0) % 360.0).toFloat()
+    }
+
+    private fun haversineMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val phi1 = Math.toRadians(lat1)
+        val phi2 = Math.toRadians(lat2)
+        val dPhi = Math.toRadians(lat2 - lat1)
+        val dLam = Math.toRadians(lon2 - lon1)
+        val a = sin(dPhi / 2).let { it * it } +
+                cos(phi1) * cos(phi2) * sin(dLam / 2).let { it * it }
+        return 2 * EARTH_RADIUS_METERS * atan2(sqrt(a), sqrt(1 - a))
     }
 
     override fun onCleared() {
@@ -194,22 +292,53 @@ data class TagScreenPosition(
     val isVisible: Boolean
 )
 
+data class ZoneArrowState(
+    val zoneId: String,
+    val colorArgb: Int,
+    val title: String,
+    /** Signed horizontal angle from current yaw to zone bearing (-180..180). 0 = straight ahead. */
+    val deltaYaw: Float,
+    val distanceMeters: Double
+)
+
 sealed interface CreateTagDialogState {
     data object Hidden : CreateTagDialogState
-    data class Visible(val yaw: Float, val pitch: Float) : CreateTagDialogState
+    data class Visible(
+        val yaw: Float,
+        val pitch: Float,
+        val isNewZone: Boolean
+    ) : CreateTagDialogState
 }
 
 data class AreaTagUiState(
     val orientation: Orientation = Orientation(),
     val location: Location? = null,
     val tagPositions: List<TagScreenPosition> = emptyList(),
-    val dialog: CreateTagDialogState = CreateTagDialogState.Hidden
+    val dialog: CreateTagDialogState = CreateTagDialogState.Hidden,
+    val zones: List<Zone> = emptyList(),
+    val selectedZoneId: String? = null,
+    val currentHexZoneId: String? = null,
+    val zoneArrow: ZoneArrowState? = null,
+    val stability: ZoneStabilityState = ZoneStabilityState()
 )
+
+data class ZoneStabilityState(
+    val consecutiveCount: Int = 0,
+    val threshold: Int = 10
+) {
+    val isStable: Boolean get() = consecutiveCount >= threshold
+}
 
 sealed interface AreaTagEvent {
     data object StartSensors : AreaTagEvent
     data object ScreenTapped : AreaTagEvent
     data object DismissCreateDialog : AreaTagEvent
-    data class CreateTag(val title: String, val description: String) : AreaTagEvent
+    data class CreateTag(
+        val title: String,
+        val description: String,
+        val zoneTitle: String? = null,
+        val zoneDescription: String? = null
+    ) : AreaTagEvent
     data class DeleteTag(val tagId: String) : AreaTagEvent
+    data class SelectZone(val zoneId: String) : AreaTagEvent
 }

@@ -34,7 +34,10 @@
       "Bash(mv SkyViewViewModel.kt AreaTagViewModel.kt)",
       "Bash(mv ui/SkyViewScreen.kt ui/AreaTagScreen.kt)",
       "Bash(mv data/SkyTag.kt data/AreaTag.kt)",
-      "Bash(mv data/SkyTagStore.kt data/AreaTagStore.kt)"
+      "Bash(mv data/SkyTagStore.kt data/AreaTagStore.kt)",
+      "Bash(unzip -p /Users/imac/.gradle/caches/modules-2/files-2.1/com.uber/h3/4.4.0/7bb0a4a9d8d14676c815e1c11e756ee550be03c2/h3-4.4.0-sources.jar com/uber/h3core/H3Core.java)",
+      "Bash(unzip *)",
+      "Bash(./gradlew :app:compileDebugKotlin --console=plain)"
     ]
   }
 }
