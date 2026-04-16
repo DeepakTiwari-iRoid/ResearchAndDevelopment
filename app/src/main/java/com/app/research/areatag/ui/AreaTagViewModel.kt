@@ -58,11 +58,10 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
         _stability
     ) { orient, loc, dialog, (zones, selectedId, currentHexId), stability ->
         val currentZone = zones.find { it.zoneId == currentHexId }
-        val resolvedZone = if (currentZone != null) {
-            currentZone
-        } else if (stability.isStable && currentHexId.isNotEmpty()) {
-            findNearbyZoneViaParent(currentHexId, zones)
-        } else null
+        val resolvedZone = currentZone
+            ?: if (stability.isStable && currentHexId.isNotEmpty()) {
+                findNearbyZoneViaParent(currentHexId, zones)
+            } else null
 
         val effectiveZoneId = resolvedZone?.zoneId ?: currentHexId
         val isInTargetZone = selectedId == null || selectedId == effectiveZoneId

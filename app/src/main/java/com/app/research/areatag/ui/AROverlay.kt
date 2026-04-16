@@ -1,8 +1,15 @@
 package com.app.research.areatag.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -11,6 +18,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.app.research.areatag.ui.AreaTagViewModel.Companion.VISIBILITY_PITCH_THRESHOLD
 import com.app.research.areatag.ui.AreaTagViewModel.Companion.VISIBILITY_YAW_THRESHOLD
@@ -23,18 +32,57 @@ import kotlin.math.roundToInt
 fun AROverlay(
     tagPositions: List<TagScreenPosition>,
     modifier: Modifier = Modifier,
-    zoneArrow: ZoneArrowState? = null
+    zoneArrow: ZoneArrowState? = null,
+    onTagClick: ((TagScreenPosition) -> Unit)? = null
 ) {
-    Canvas(modifier = modifier.fillMaxSize()) {
-        drawCrosshair()
-        tagPositions.forEach { tagPos ->
-            if (tagPos.isVisible) {
-                drawTagMarker(tagPos)
-            } else {
-                drawDirectionalArrow(tagPos)
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+
+        val widthPx = constraints.maxWidth
+        val heightPx = constraints.maxHeight
+
+        // Canvas for crosshair, directional arrows, zone nav
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCrosshair()
+            tagPositions.forEach { tagPos ->
+                if (tagPos.isVisible) {
+                    drawTagMarker(tagPos)
+                } else {
+                    drawDirectionalArrow(tagPos)
+                }
+            }
+            zoneArrow?.let { drawZoneNavArrow(it) }
+        }
+
+        // Clickable hit targets over visible tags
+        if (onTagClick != null) {
+            val hitSize = 56.dp
+            val hitSizePx = with(density) { hitSize.toPx() }
+            val cx = widthPx / 2f
+            val cy = heightPx / 2f
+            val pxPerDegX = widthPx / (VISIBILITY_YAW_THRESHOLD * 2f)
+            val pxPerDegY = heightPx / (VISIBILITY_PITCH_THRESHOLD * 2f)
+
+            tagPositions.filter { it.isVisible }.forEach { tagPos ->
+                val screenX = cx + tagPos.deltaYaw * pxPerDegX
+                val screenY = cy - tagPos.deltaPitch * pxPerDegY
+
+                Box(
+                    modifier = Modifier
+                        .size(hitSize)
+                        .offset {
+                            IntOffset(
+                                (screenX - hitSizePx / 2f).roundToInt(),
+                                (screenY - hitSizePx / 2f).roundToInt()
+                            )
+                        }
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onTagClick(tagPos) }
+                )
             }
         }
-        zoneArrow?.let { drawZoneNavArrow(it) }
     }
 }
 

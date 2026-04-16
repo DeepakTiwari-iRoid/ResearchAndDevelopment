@@ -1,6 +1,7 @@
 package com.app.research.areatag.ui
 
 import android.Manifest
+import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -59,6 +60,7 @@ import com.app.research.ui.theme.black
 import com.app.research.ui.theme.blackA25
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -163,14 +165,7 @@ private fun AreaTagContent(
         }
 
 
-        // AR Overlay — tags, crosshair, arrows
-        AROverlay(
-            tagPositions = tagPositions,
-            zoneArrow = uiState.zoneArrow,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        // Tap target (invisible, captures taps)
+        // Tap target (invisible, captures taps for creating new tags)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -179,6 +174,19 @@ private fun AreaTagContent(
                     interactionSource = remember { MutableInteractionSource() }) {
                     onEvent(AreaTagEvent.ScreenTapped)
                 })
+
+        // AR Overlay — tags, crosshair, arrows (on top so tag clicks take priority)
+        AROverlay(
+            tagPositions = tagPositions,
+            zoneArrow = uiState.zoneArrow,
+            modifier = Modifier.fillMaxSize(),
+            onTagClick = { tagPos ->
+                val message =
+                    "Tag clicked: title=${tagPos.tag.title}, uuid=${tagPos.tag.uuid}, yaw=${tagPos.tag.yaw}, pitch=${tagPos.tag.pitch}"
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                Timber.d(message)
+            }
+        )
 
         VStack(
             horizontalAlignment = Alignment.Start,
