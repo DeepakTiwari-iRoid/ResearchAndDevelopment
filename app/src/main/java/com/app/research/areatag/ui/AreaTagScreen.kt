@@ -111,7 +111,8 @@ private fun PermissionRequest(onRequestPermissions: () -> Unit) {
 
 @Composable
 private fun AreaTagContent(
-    uiState: AreaTagUiState, onEvent: (AreaTagEvent) -> Unit
+    uiState: AreaTagUiState,
+    onEvent: (AreaTagEvent) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current

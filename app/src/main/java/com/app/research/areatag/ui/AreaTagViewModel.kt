@@ -57,9 +57,17 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
         combine(_zones, _selectedZoneId, _currentHexZoneId) { z, s, h -> Triple(z, s, h) },
         _stability
     ) { orient, loc, dialog, (zones, selectedId, currentHexId), stability ->
-        val isInTargetZone = selectedId == null || selectedId == currentHexId
-        val rawTags = if (isInTargetZone && currentHexId.isNotEmpty()) {
-            zones.find { it.zoneId == currentHexId }?.tags.orEmpty()
+        val currentZone = zones.find { it.zoneId == currentHexId }
+        val resolvedZone = if (currentZone != null) {
+            currentZone
+        } else if (stability.isStable && currentHexId.isNotEmpty()) {
+            findNearbyZoneViaParent(currentHexId, zones)
+        } else null
+
+        val effectiveZoneId = resolvedZone?.zoneId ?: currentHexId
+        val isInTargetZone = selectedId == null || selectedId == effectiveZoneId
+        val rawTags = if (isInTargetZone && resolvedZone != null) {
+            resolvedZone.tags
         } else emptyList()
         val arrow = if (!isInTargetZone) {
             computeZoneArrow(zones, selectedId, loc, orient)
@@ -84,15 +92,20 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
     init {
         reloadTags()
         viewModelScope.launch {
-            combine(_currentHexZoneId, _zones) { hex, zones -> hex to zones }
-                .collect { (hex, zones) ->
-                    if (hex.isNotEmpty() &&
-                        _selectedZoneId.value == null &&
-                        zones.any { it.zoneId == hex }
-                    ) {
+            combine(_currentHexZoneId, _zones, _stability) { hex, zones, stability ->
+                Triple(hex, zones, stability)
+            }.collect { (hex, zones, stability) ->
+                if (hex.isNotEmpty() && _selectedZoneId.value == null) {
+                    val directMatch = zones.any { it.zoneId == hex }
+                    if (directMatch) {
                         _selectedZoneId.value = hex
+                    } else if (stability.isStable) {
+                        findNearbyZoneViaParent(hex, zones)?.let {
+                            _selectedZoneId.value = it.zoneId
+                        }
                     }
                 }
+            }
         }
     }
 
@@ -108,6 +121,7 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
                 event.zoneTitle,
                 event.zoneDescription
             )
+
             is AreaTagEvent.DeleteTag -> deleteTag(event.tagId)
             is AreaTagEvent.SelectZone -> _selectedZoneId.value = event.zoneId
         }
@@ -204,6 +218,22 @@ class AreaTagViewModel(application: Application) : AndroidViewModel(application)
 
     private fun reloadTags() {
         _zones.value = tagStore.loadAll()
+    }
+
+    private fun findNearbyZoneViaParent(currentHexId: String, zones: List<Zone>): Zone? {
+        return runCatching {
+            val parentRes = Constants.H3_RESOLUTION - 1
+            val parentCell = h3.cellToParentAddress(currentHexId, parentRes)
+            val siblingCells = h3.cellToChildren(parentCell, Constants.H3_RESOLUTION)
+            val zoneMap = zones.associateBy { it.zoneId }
+            val match = siblingCells.firstNotNullOfOrNull { sibling -> zoneMap[sibling] }
+            if (match != null) {
+                Timber.d("Parent-cell fallback: resolved ${match.zoneId} from parent $parentCell")
+            }
+            match
+        }.onFailure {
+            Timber.e(it, "Parent-cell fallback failed for $currentHexId")
+        }.getOrNull()
     }
 
     private fun computeTagPositions(
@@ -339,6 +369,7 @@ sealed interface AreaTagEvent {
         val zoneTitle: String? = null,
         val zoneDescription: String? = null
     ) : AreaTagEvent
+
     data class DeleteTag(val tagId: String) : AreaTagEvent
     data class SelectZone(val zoneId: String) : AreaTagEvent
 }

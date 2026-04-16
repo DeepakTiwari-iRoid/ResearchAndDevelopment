@@ -37,7 +37,10 @@
       "Bash(mv data/SkyTagStore.kt data/AreaTagStore.kt)",
       "Bash(unzip -p /Users/imac/.gradle/caches/modules-2/files-2.1/com.uber/h3/4.4.0/7bb0a4a9d8d14676c815e1c11e756ee550be03c2/h3-4.4.0-sources.jar com/uber/h3core/H3Core.java)",
       "Bash(unzip *)",
-      "Bash(./gradlew :app:compileDebugKotlin --console=plain)"
+      "Bash(./gradlew :app:compileDebugKotlin --console=plain)",
+      "Bash(javap -p /Users/imac/.gradle/caches/modules-2/files-2.1/com.uber/h3/4.4.0/48fb9f368c298a52aedc896e9f81d5e9a711e240/h3-4.4.0.jar\\\\!/com/uber/h3core/H3Core.class)",
+      "Bash(jar xf *)",
+      "Bash(javap com/uber/h3core/H3Core.class)"
     ]
   }
 }
