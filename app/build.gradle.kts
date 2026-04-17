@@ -156,6 +156,10 @@ android {
         implementation(libs.arsceneview)
         implementation("com.uber:h3-android:4.4.0")
 
+        //OCR
+        implementation("cz.adaptech.tesseract4android:tesseract4android-openmp:4.9.0")
+        implementation("com.google.mlkit:text-recognition:16.0.1")
+
         // Tests
         testImplementation(libs.junit)
         androidTestImplementation(libs.androidx.junit)

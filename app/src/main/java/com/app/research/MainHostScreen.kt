@@ -33,13 +33,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.app.research.Screens.CamPointsMappingOverlay
 import com.app.research.Screens.ARSample360
 import com.app.research.Screens.ArTagging
 import com.app.research.Screens.AreaTag
-import com.app.research.Screens.WebRTCAudioCalling
+import com.app.research.Screens.CamPointsMappingOverlay
 import com.app.research.Screens.ChatCustomPaging
 import com.app.research.Screens.TensorFlow
+import com.app.research.Screens.WebRTCAudioCalling
 import com.app.research.data.Constants
 import com.app.research.deeplink.DeepLinkActivity
 import com.app.research.faceml.FaceMLActivity
@@ -146,7 +146,8 @@ enum class Screens {
     WebRTCAudioCalling,
     ARSample360,
     AreaTag,
-    ArTagging
+    ArTagging,
+    OCR
 }
 
 
@@ -203,6 +204,11 @@ fun navigateToScreen(
 
         ArTagging -> {
             bundle.putString(Constants.KEYS.START_DEST, ArTagging.name)
+            intent(context, ComposeHostActivity::class.java, bundle = bundle)
+        }
+        
+        Screens.OCR -> {
+            bundle.putString(Constants.KEYS.START_DEST, Screens.OCR.name)
             intent(context, ComposeHostActivity::class.java, bundle = bundle)
         }
 

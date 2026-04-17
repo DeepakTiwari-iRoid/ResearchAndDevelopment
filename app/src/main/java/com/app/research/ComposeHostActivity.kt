@@ -13,13 +13,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.app.research.areatag.ui.AreaTagScreen
+import com.app.research.arsample.ARSampleScreen
+import com.app.research.artagging.ui.ArTaggingScreen
 import com.app.research.camoverlaypointsmapping.CamPointsMappingScreen
 import com.app.research.chatpaging.ChatScreen
 import com.app.research.data.Constants
+import com.app.research.ocr.OCRScreen
 import com.app.research.tensorflow.TensorFlow
-import com.app.research.arsample.ARSampleScreen
-import com.app.research.artagging.ui.ArTaggingScreen
-import com.app.research.areatag.ui.AreaTagScreen
 import com.app.research.webrtcaudiocalling.presentation.CallScreen
 import org.opencv.android.OpenCVLoader
 import timber.log.Timber
@@ -92,6 +93,9 @@ fun ComposeHost(
 
         composable(route = Screens.ArTagging.name) {
             ArTaggingScreen()
+        }
+        composable(route = Screens.OCR.name) {
+            OCRScreen()
         }
     }
 }
